@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 env:
   RUST_BACKTRACE: full
-  RUST_LOG: debug
+  RUST_LOG: rstream=debug
 
 jobs:
   clippy:
@@ -38,7 +38,7 @@ jobs:
         with:
           toolchain: stable
           override: true
-      - name: Run cargo fmt
+      - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
