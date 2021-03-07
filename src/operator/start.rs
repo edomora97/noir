@@ -28,6 +28,7 @@ async fn source_body<Out>(
     Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     let mut missing_ends = metadata.num_prev;
+
     while let Ok(()) = next_batch.recv().await {
         let mut buf = receiver.recv().await.unwrap();
         let last_message = buf
@@ -51,6 +52,8 @@ async fn source_body<Out>(
 
         let mut batch = batch.borrow_mut();
         batch.append(&mut buf.into());
+        // make sure the borrow ends before sending the "done" signal
+        drop(batch);
 
         next_batch_done.send(()).await.unwrap();
     }
