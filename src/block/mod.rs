@@ -23,7 +23,7 @@ use crate::stream::BlockId;
 #[derive(Debug, Clone)]
 pub(crate) struct InnerBlock<In, Out, OperatorChain>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out>,
 {
     /// The identifier of the block inside the environment.
@@ -53,7 +53,7 @@ pub(crate) struct SchedulerRequirements {
 
 impl<In, Out, OperatorChain> InnerBlock<In, Out, OperatorChain>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out>,
 {
     pub fn new(id: BlockId, operators: OperatorChain) -> Self {
@@ -71,11 +71,16 @@ where
 
 impl<In, Out, OperatorChain> Display for InnerBlock<In, Out, OperatorChain>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out>,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.operators.to_string())
+        write!(
+            f,
+            "{} ~> {}",
+            self.operators.to_string(),
+            self.next_strategy
+        )
     }
 }
 

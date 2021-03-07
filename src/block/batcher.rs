@@ -30,7 +30,7 @@ pub enum BatchMode {
 /// Message sent to the batcher task.
 pub(crate) enum BatcherMessage<Out>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     /// An actual message to put in the queue has arrived.
     Message(StreamElement<Out>),
@@ -43,7 +43,7 @@ where
 /// Internally it spawns a new task to handle the timeouts and join it at the end.
 pub(crate) struct Batcher<Out>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     /// Sender to the internal task that does the batching.
     sender: Sender<BatcherMessage<Out>>,
@@ -53,7 +53,7 @@ where
 
 impl<Out> Batcher<Out>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     pub(crate) fn new(remote_sender: NetworkSender<NetworkMessage<Out>>, mode: BatchMode) -> Self {
         let (sender, receiver) = bounded(1);

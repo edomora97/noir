@@ -1,20 +1,20 @@
+use async_std::channel::{Receiver, Sender};
 use async_std::fs::File;
+use async_std::io::prelude::SeekExt;
 use async_std::io::{BufReader, SeekFrom};
 use async_std::path::PathBuf;
 use async_std::prelude::*;
+use async_std::task::spawn;
 use async_trait::async_trait;
 
-use crate::operator::source::Source;
+use crate::operator::source::{Source, SourceBatch, SourceLoader};
 use crate::operator::{Operator, StreamElement};
 use crate::scheduler::ExecutionMetadata;
 
 #[derive(Debug)]
 pub struct FileSource {
     path: PathBuf,
-    // reader is initialized in `setup`, before it is None
-    reader: Option<BufReader<File>>,
-    current: usize,
-    end: usize,
+    batch: SourceBatch<String>,
 }
 
 impl FileSource {
@@ -24,10 +24,37 @@ impl FileSource {
     {
         Self {
             path: path.into(),
-            reader: Default::default(),
-            current: 0,
-            end: 0,
+            batch: Default::default(),
         }
+    }
+}
+
+async fn source_body(
+    next_batch: Receiver<()>,
+    next_batch_done: Sender<()>,
+    mut current: usize,
+    end: usize,
+    mut reader: BufReader<File>,
+    batch: SourceBatch<String>,
+) {
+    while let Ok(()) = next_batch.recv().await {
+        let element = if current <= end {
+            let mut line = String::new();
+            match reader.read_line(&mut line).await {
+                Ok(len) if len > 0 => {
+                    current += len;
+                    StreamElement::Item(line)
+                }
+                Ok(_) => StreamElement::End,
+                Err(e) => panic!(e),
+            }
+        } else {
+            StreamElement::End
+        };
+
+        batch.borrow_mut().push_back(element);
+
+        next_batch_done.send(()).await.unwrap();
     }
 }
 
@@ -39,7 +66,7 @@ impl Source<String> for FileSource {
 
 #[async_trait]
 impl Operator<String> for FileSource {
-    async fn setup(&mut self, metadata: ExecutionMetadata) {
+    async fn setup(&mut self, metadata: ExecutionMetadata) -> SourceLoader {
         let global_id = metadata.global_id;
         let num_replicas = metadata.num_replicas;
 
@@ -50,8 +77,8 @@ impl Operator<String> for FileSource {
 
         let range_size = file_size / num_replicas;
         let start = range_size * global_id;
-        self.current = start;
-        self.end = if global_id == num_replicas - 1 {
+        let mut current = start;
+        let end = if global_id == num_replicas - 1 {
             file_size
         } else {
             start + range_size
@@ -66,54 +93,35 @@ impl Operator<String> for FileSource {
         if global_id != 0 {
             // discard first line
             let mut s = String::new();
-            self.current += reader
+            current += reader
                 .read_line(&mut s)
                 .await
                 .expect("Cannot read line from file");
         }
-        self.reader = Some(reader);
+
+        let (source_loader, start_loading, done_loading) = SourceLoader::new();
+        let batch = self.batch.clone();
+        spawn(async move {
+            source_body(start_loading, done_loading, current, end, reader, batch).await
+        });
+        source_loader
     }
 
-    async fn next(&mut self) -> StreamElement<String> {
-        let element = if self.current <= self.end {
-            let mut line = String::new();
-            match self
-                .reader
-                .as_mut()
-                .expect("BufReader was not initialized")
-                .read_line(&mut line)
-                .await
-            {
-                Ok(len) if len > 0 => {
-                    self.current += len;
-                    StreamElement::Item(line)
-                }
-                Ok(_) => StreamElement::End,
-                Err(e) => panic!(e),
-            }
-        } else {
-            StreamElement::End
-        };
-
-        element
+    fn next(&mut self) -> Option<StreamElement<String>> {
+        self.batch.borrow_mut().pop_front()
     }
 
     fn to_string(&self) -> String {
-        format!("FileSource<{}>", std::any::type_name::<String>())
+        format!("FileSource<{}>", self.path.display())
     }
 }
 
 impl Clone for FileSource {
     fn clone(&self) -> Self {
-        assert!(
-            self.reader.is_none(),
-            "FileSource must be cloned before calling setup"
-        );
         FileSource {
             path: self.path.clone(),
-            reader: None,
-            current: 0,
-            end: 0,
+            // the batch must be different, otherwise all the clones will point to the same one
+            batch: Default::default(),
         }
     }
 }

@@ -8,18 +8,19 @@ use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
+use crate::operator::source::SourceLoader;
 use crate::operator::{Operator, StreamElement};
 use crate::scheduler::ExecutionMetadata;
 use crate::stream::{KeyValue, KeyedStream, Stream};
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
-pub struct Flatten<Out, IterOut, NewOut, PreviousOperators>
+pub(crate) struct Flatten<Out, IterOut, NewOut, PreviousOperators>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     IterOut: Iterator<Item = NewOut> + Clone + Send + 'static,
     PreviousOperators: Operator<Out>,
-    NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+    NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     prev: PreviousOperators,
     // used to store elements that have not been returned by next() yet
@@ -35,18 +36,18 @@ where
 impl<Out, IterOut, NewOut, PreviousOperators> Operator<NewOut>
     for Flatten<Out, IterOut, NewOut, PreviousOperators>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     IterOut: Iterator<Item = NewOut> + Clone + Send + 'static,
     PreviousOperators: Operator<Out> + Send,
-    NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+    NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
-    async fn setup(&mut self, metadata: ExecutionMetadata) {
-        self.prev.setup(metadata).await;
+    async fn setup(&mut self, metadata: ExecutionMetadata) -> SourceLoader {
+        self.prev.setup(metadata).await
     }
 
-    async fn next(&mut self) -> StreamElement<NewOut> {
+    fn next(&mut self) -> Option<StreamElement<NewOut>> {
         while self.buffer.is_empty() {
-            match self.prev.next().await {
+            match self.prev.next()? {
                 StreamElement::Item(item) => {
                     self.buffer = (self.make_iter)(item).map(StreamElement::Item).collect()
                 }
@@ -55,12 +56,12 @@ where
                         .map(|value| StreamElement::Timestamped(value, ts))
                         .collect()
                 }
-                StreamElement::Watermark(ts) => return StreamElement::Watermark(ts),
-                StreamElement::End => return StreamElement::End,
+                StreamElement::Watermark(ts) => return Some(StreamElement::Watermark(ts)),
+                StreamElement::End => return Some(StreamElement::End),
             }
         }
 
-        self.buffer.pop_front().unwrap()
+        Some(self.buffer.pop_front().unwrap())
     }
 
     fn to_string(&self) -> String {
@@ -75,11 +76,11 @@ where
 
 impl<In, Out, OperatorChain, NewOut> Stream<In, Out, OperatorChain>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: IntoIterator<Item = NewOut> + Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: IntoIterator<Item = NewOut> + Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     <Out as IntoIterator>::IntoIter: Clone + Send + 'static,
     OperatorChain: Operator<Out> + Send + 'static,
-    NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+    NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     pub fn flatten(self) -> Stream<In, NewOut, impl Operator<NewOut>> {
         self.add_operator(|prev| Flatten {
@@ -93,15 +94,21 @@ where
 
 impl<In, Out, OperatorChain> Stream<In, Out, OperatorChain>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out> + Send + 'static,
 {
     pub fn flat_map<MapOut, NewOut, F>(self, f: F) -> Stream<In, NewOut, impl Operator<NewOut>>
     where
-        MapOut: IntoIterator<Item = NewOut> + Clone + Serialize + DeserializeOwned + Send + 'static,
+        MapOut: IntoIterator<Item = NewOut>
+            + Clone
+            + Serialize
+            + DeserializeOwned
+            + Send
+            + Sync
+            + 'static,
         <MapOut as IntoIterator>::IntoIter: Clone + Send + 'static,
-        NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+        NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         F: Fn(Out) -> MapOut + Send + Sync + 'static,
     {
         self.map(f).flatten()
@@ -110,11 +117,11 @@ where
 
 impl<In, Key, Out, NewOut, OperatorChain> KeyedStream<In, Key, Out, OperatorChain>
 where
-    Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: IntoIterator<Item = NewOut> + Clone + Serialize + DeserializeOwned + Send + 'static,
+    Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: IntoIterator<Item = NewOut> + Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     <Out as IntoIterator>::IntoIter: Clone + Send + 'static,
-    NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+    NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
 {
     pub fn flatten(self) -> KeyedStream<In, Key, NewOut, impl Operator<KeyValue<Key, NewOut>>> {
@@ -130,9 +137,9 @@ where
 
 impl<In, Key, Out, OperatorChain> KeyedStream<In, Key, Out, OperatorChain>
 where
-    Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
 {
     pub fn flat_map<NewOut, MapOut, F>(
@@ -140,9 +147,15 @@ where
         f: F,
     ) -> KeyedStream<In, Key, NewOut, impl Operator<KeyValue<Key, NewOut>>>
     where
-        MapOut: IntoIterator<Item = NewOut> + Clone + Serialize + DeserializeOwned + Send + 'static,
+        MapOut: IntoIterator<Item = NewOut>
+            + Clone
+            + Serialize
+            + DeserializeOwned
+            + Send
+            + Sync
+            + 'static,
         <MapOut as IntoIterator>::IntoIter: Clone + Send + 'static,
-        NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+        NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         F: Fn(KeyValue<Key, Out>) -> MapOut + Send + Sync + 'static,
     {
         self.map(f).flatten()

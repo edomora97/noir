@@ -5,18 +5,11 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 pub use batch_mode::*;
-pub use end::*;
-pub use group_by::*;
-pub use key_by::*;
-pub use map::*;
-pub use shuffle::*;
-pub use start::*;
-pub use unkey::*;
 
+use crate::operator::source::SourceLoader;
 use crate::scheduler::ExecutionMetadata;
 
 mod batch_mode;
-mod end;
 mod flatten;
 mod fold;
 mod group_by;
@@ -26,7 +19,7 @@ mod map;
 mod shuffle;
 pub mod sink;
 pub mod source;
-mod start;
+pub(crate) mod start;
 mod unkey;
 
 /// When using timestamps and watermarks, this type expresses the timestamp of a message or of a
@@ -41,7 +34,7 @@ pub type Timestamp = Duration;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum StreamElement<Out>
 where
-    Out: Clone + Send + 'static,
+    Out: Clone + Send + Sync + 'static,
 {
     /// A normal element containing just the value of the message.
     Item(Out),
@@ -62,23 +55,18 @@ where
 ///
 /// An `Operator` must be Clone since it is part of a single chain when it's built, but it has to
 /// be cloned to spawn the replicas of the block.
-///
-/// This trait has some `async` function, due to a limitation of rust `async_trait` must be used.
 #[async_trait]
 pub trait Operator<Out>: Clone
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
-    /// Setup the operator chain. This is called before any call to `next` and it's used to
-    /// initialize the operator. When it's called the operator has already been cloned and it will
-    /// never be cloned again. Therefore it's safe to store replica-specific metadata inside of it.
-    ///
-    /// It's important that each operator (except the start of a chain) calls `.setup()` recursively
-    /// on the previous operators.
-    async fn setup(&mut self, metadata: ExecutionMetadata);
+    /// Setup the source with the metadata and return the loader that tells to the source when to
+    /// load a new batch.
+    async fn setup(&mut self, metadata: ExecutionMetadata) -> SourceLoader;
 
-    /// Take a value from the previous operator, process it and return it.
-    async fn next(&mut self) -> StreamElement<Out>;
+    /// Take a value from the previous operator, process it and return it. Returns `None` when the
+    /// current batch ends.
+    fn next(&mut self) -> Option<StreamElement<Out>>;
 
     /// A string representation of the operator and its predecessors.
     fn to_string(&self) -> String;
@@ -86,23 +74,12 @@ where
 
 impl<Out> StreamElement<Out>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
-    /// Create a new `StreamElement` with an `Item(())` if `self` contains an item, otherwise it
-    /// returns the same variant of `self`.
-    pub(crate) fn take(&self) -> StreamElement<()> {
-        match self {
-            StreamElement::Item(_) => StreamElement::Item(()),
-            StreamElement::Timestamped(_, _) => StreamElement::Item(()),
-            StreamElement::Watermark(w) => StreamElement::Watermark(*w),
-            StreamElement::End => StreamElement::End,
-        }
-    }
-
     /// Change the type of the element inside the `StreamElement`.
     pub(crate) fn map<NewOut>(self, f: impl FnOnce(Out) -> NewOut) -> StreamElement<NewOut>
     where
-        NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+        NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     {
         match self {
             StreamElement::Item(item) => StreamElement::Item(f(item)),

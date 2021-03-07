@@ -49,7 +49,7 @@ impl StreamEnvironment {
     /// Construct a new stream bound to this environment starting with the specified source.
     pub fn stream<Out, S>(&mut self, source: S) -> Stream<Out, Out, S>
     where
-        Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+        Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         S: Source<Out> + Send + 'static,
     {
         let mut env = self.inner.borrow_mut();

@@ -1,69 +1,94 @@
-use std::collections::VecDeque;
-
+use async_std::channel::{Receiver, Sender};
+use async_std::task::spawn;
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::network::{NetworkMessage, NetworkReceiver};
+use crate::operator::source::{Source, SourceBatch, SourceLoader};
 use crate::operator::{Operator, StreamElement};
 use crate::scheduler::ExecutionMetadata;
 
 #[derive(Debug, Derivative)]
-#[derivative(Clone, Default(bound = ""))]
-pub struct StartBlock<Out>
+#[derivative(Default(bound = ""))]
+pub(crate) struct StartBlock<Out>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
-    metadata: Option<ExecutionMetadata>,
-    #[derivative(Clone(clone_with = "clone_none"))]
-    receiver: Option<NetworkReceiver<NetworkMessage<Out>>>,
-    buffer: VecDeque<StreamElement<Out>>,
-    missing_ends: usize,
+    batch: SourceBatch<Out>,
+}
+
+async fn source_body<Out>(
+    next_batch: Receiver<()>,
+    next_batch_done: Sender<()>,
+    metadata: ExecutionMetadata,
+    receiver: NetworkReceiver<NetworkMessage<Out>>,
+    batch: SourceBatch<Out>,
+) where
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+{
+    let mut missing_ends = metadata.num_prev;
+    while let Ok(()) = next_batch.recv().await {
+        let mut buf = receiver.recv().await.unwrap();
+        let last_message = buf
+            .get(buf.len() - 1)
+            .expect("Previous block sent an empty message");
+        if matches!(last_message, StreamElement::End) {
+            missing_ends -= 1;
+            debug!(
+                "{} received an end, {} more to come",
+                metadata.coord, missing_ends
+            );
+
+            if missing_ends == 0 {
+                // all the previous blocks sent and end: we're done
+                info!("StartBlock for {} has ended", metadata.coord);
+            } else {
+                // avoid sending the End if we don't have received an End from everyone
+                buf.pop().unwrap();
+            }
+        }
+
+        let mut batch = batch.borrow_mut();
+        batch.append(&mut buf.into());
+
+        next_batch_done.send(()).await.unwrap();
+    }
+}
+
+impl<Out> Source<Out> for StartBlock<Out>
+where
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+{
+    fn get_max_parallelism(&self) -> Option<usize> {
+        None
+    }
 }
 
 #[async_trait]
 impl<Out> Operator<Out> for StartBlock<Out>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
-    async fn setup(&mut self, metadata: ExecutionMetadata) {
+    async fn setup(&mut self, metadata: ExecutionMetadata) -> SourceLoader {
+        let batch = self.batch.clone();
         let mut network = metadata.network.lock().await;
-        self.receiver = Some(network.get_receiver(metadata.coord));
+        let receiver = network.get_receiver(metadata.coord);
         drop(network);
-        self.missing_ends = metadata.num_prev;
-        info!(
+        debug!(
             "StartBlock {} initialized, {} previous blocks, receiver is: {:?}",
-            metadata.coord, metadata.num_prev, self.receiver
+            metadata.coord, metadata.num_prev, receiver
         );
-        self.metadata = Some(metadata);
+
+        let (source_loader, start_loading, done_loading) = SourceLoader::new();
+        spawn(
+            async move { source_body(start_loading, done_loading, metadata, receiver, batch).await },
+        );
+        source_loader
     }
 
-    async fn next(&mut self) -> StreamElement<Out> {
-        let metadata = self.metadata.as_ref().unwrap();
-        // all the previous blocks sent and end: we're done
-        if self.missing_ends == 0 {
-            info!("StartBlock for {} has ended", metadata.coord);
-            return StreamElement::End;
-        }
-        let receiver = self.receiver.as_ref().unwrap();
-        if self.buffer.is_empty() {
-            // receive from any previous block
-            let buf = receiver.recv().await.unwrap();
-            self.buffer.append(&mut buf.into());
-        }
-        let message = self
-            .buffer
-            .pop_front()
-            .expect("Previous block sent an empty message");
-        if matches!(message, StreamElement::End) {
-            self.missing_ends -= 1;
-            debug!(
-                "{} received an end, {} more to come",
-                metadata.coord, self.missing_ends
-            );
-            return self.next().await;
-        }
-        message
+    fn next(&mut self) -> Option<StreamElement<Out>> {
+        self.batch.borrow_mut().pop_front()
     }
 
     fn to_string(&self) -> String {
@@ -71,6 +96,13 @@ where
     }
 }
 
-fn clone_none<T>(_: &Option<T>) -> Option<T> {
-    None
+impl<Out> Clone for StartBlock<Out>
+where
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+{
+    fn clone(&self) -> Self {
+        Self {
+            batch: Default::default(),
+        }
+    }
 }

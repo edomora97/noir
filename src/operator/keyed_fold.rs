@@ -7,18 +7,19 @@ use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
+use crate::operator::source::SourceLoader;
 use crate::operator::{Operator, StreamElement, Timestamp};
 use crate::scheduler::ExecutionMetadata;
 use crate::stream::{KeyValue, KeyedStream};
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
-pub struct KeyedFold<Key, Out, NewOut, PreviousOperators>
+pub(crate) struct KeyedFold<Key, Out, NewOut, PreviousOperators>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
     PreviousOperators: Operator<KeyValue<Key, Out>>,
-    NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+    NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     prev: PreviousOperators,
     #[derivative(Debug = "ignore")]
@@ -34,18 +35,18 @@ where
 impl<Key, Out, NewOut, PreviousOperators> Operator<KeyValue<Key, NewOut>>
     for KeyedFold<Key, Out, NewOut, PreviousOperators>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
     PreviousOperators: Operator<KeyValue<Key, Out>> + Send,
-    NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+    NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
-    async fn setup(&mut self, metadata: ExecutionMetadata) {
-        self.prev.setup(metadata).await;
+    async fn setup(&mut self, metadata: ExecutionMetadata) -> SourceLoader {
+        self.prev.setup(metadata).await
     }
 
-    async fn next(&mut self) -> StreamElement<KeyValue<Key, NewOut>> {
+    fn next(&mut self) -> Option<StreamElement<KeyValue<Key, NewOut>>> {
         while !self.received_end {
-            match self.prev.next().await {
+            match self.prev.next()? {
                 StreamElement::End => self.received_end = true,
                 StreamElement::Watermark(ts) => {
                     self.max_watermark = Some(self.max_watermark.unwrap_or(ts).max(ts))
@@ -74,18 +75,18 @@ where
         if let Some(k) = self.accumulators.keys().next() {
             let key = k.clone();
             let entry = self.accumulators.remove_entry(&key).unwrap();
-            return if let Some(ts) = self.timestamps.remove(&key) {
+            return Some(if let Some(ts) = self.timestamps.remove(&key) {
                 StreamElement::Timestamped(entry, ts)
             } else {
                 StreamElement::Item(entry)
-            };
+            });
         }
 
         if let Some(ts) = self.max_watermark.take() {
-            return StreamElement::Watermark(ts);
+            return Some(StreamElement::Watermark(ts));
         }
 
-        StreamElement::End
+        Some(StreamElement::End)
     }
 
     fn to_string(&self) -> String {
@@ -100,9 +101,9 @@ where
 
 impl<In, Key, Out, OperatorChain> KeyedStream<In, Key, Out, OperatorChain>
 where
-    Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
 {
     pub fn fold<NewOut, F>(
@@ -111,7 +112,7 @@ where
         f: F,
     ) -> KeyedStream<In, Key, NewOut, impl Operator<KeyValue<Key, NewOut>>>
     where
-        NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+        NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         F: Fn(NewOut, Out) -> NewOut + Send + Sync + 'static,
     {
         self.add_operator(|prev| KeyedFold {
@@ -129,11 +130,11 @@ where
 #[cfg(test)]
 mod tests {
     use async_std::stream::from_iter;
+    use itertools::Itertools;
 
     use crate::config::EnvironmentConfig;
     use crate::environment::StreamEnvironment;
     use crate::operator::source;
-    use itertools::Itertools;
 
     #[async_std::test]
     async fn fold_keyed_stream() {

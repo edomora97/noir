@@ -1,21 +1,22 @@
 use std::hash::Hash;
 
+use async_std::sync::Arc;
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::operator::Keyer;
+use crate::operator::group_by::Keyer;
+use crate::operator::source::SourceLoader;
 use crate::operator::{Operator, StreamElement};
 use crate::scheduler::ExecutionMetadata;
 use crate::stream::{KeyValue, KeyedStream, Stream};
-use async_std::sync::Arc;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
-pub struct KeyBy<Key, Out, OperatorChain>
+pub(crate) struct KeyBy<Key, Out, OperatorChain>
 where
-    Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out>,
 {
     prev: OperatorChain,
@@ -25,8 +26,8 @@ where
 
 impl<Key, Out, OperatorChain> KeyBy<Key, Out, OperatorChain>
 where
-    Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out>,
 {
     pub fn new(prev: OperatorChain, keyer: Keyer<Key, Out>) -> Self {
@@ -37,23 +38,23 @@ where
 #[async_trait]
 impl<Key, Out, OperatorChain> Operator<KeyValue<Key, Out>> for KeyBy<Key, Out, OperatorChain>
 where
-    Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out> + Send,
 {
-    async fn setup(&mut self, metadata: ExecutionMetadata) {
-        self.prev.setup(metadata).await;
+    async fn setup(&mut self, metadata: ExecutionMetadata) -> SourceLoader {
+        self.prev.setup(metadata).await
     }
 
-    async fn next(&mut self) -> StreamElement<KeyValue<Key, Out>> {
-        match self.prev.next().await {
+    fn next(&mut self) -> Option<StreamElement<KeyValue<Key, Out>>> {
+        Some(match self.prev.next()? {
             StreamElement::Item(t) => StreamElement::Item(((self.keyer)(&t), t)),
             StreamElement::Timestamped(t, ts) => {
                 StreamElement::Timestamped(((self.keyer)(&t), t), ts)
             }
             StreamElement::Watermark(w) => StreamElement::Watermark(w),
             StreamElement::End => StreamElement::End,
-        }
+        })
     }
 
     fn to_string(&self) -> String {
@@ -67,8 +68,8 @@ where
 
 impl<In, Out, OperatorChain> Stream<In, Out, OperatorChain>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out> + Send + 'static,
 {
     pub fn key_by<Key, Keyer>(
@@ -76,7 +77,7 @@ where
         keyer: Keyer,
     ) -> KeyedStream<In, Key, Out, impl Operator<KeyValue<Key, Out>>>
     where
-        Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
+        Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
         Keyer: Fn(&Out) -> Key + Send + Sync + 'static,
     {
         let keyer = Arc::new(keyer);

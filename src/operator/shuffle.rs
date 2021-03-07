@@ -2,18 +2,18 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::block::NextStrategy;
-use crate::operator::{EndBlock, Operator};
+use crate::operator::Operator;
 use crate::stream::Stream;
 
 impl<In, Out, OperatorChain> Stream<In, Out, OperatorChain>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out> + Send + 'static,
 {
     pub fn shuffle(mut self) -> Stream<Out, Out, impl Operator<Out>> {
         self.block.next_strategy = NextStrategy::Random;
-        self.add_block(EndBlock::new)
+        self.add_block()
     }
 }
 

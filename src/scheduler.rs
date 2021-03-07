@@ -95,8 +95,8 @@ impl Scheduler {
         &mut self,
         block: InnerBlock<In, Out, OperatorChain>,
     ) where
-        In: Clone + Serialize + DeserializeOwned + Send + 'static,
-        Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+        In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+        Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         OperatorChain: Operator<Out> + Send + 'static,
     {
         let block_id = block.id;
@@ -248,8 +248,8 @@ impl Scheduler {
         block: &InnerBlock<In, Out, OperatorChain>,
     ) -> SchedulerBlockInfo
     where
-        In: Clone + Serialize + DeserializeOwned + Send + 'static,
-        Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+        In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+        Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         OperatorChain: Operator<Out>,
     {
         match &self.config.runtime {
@@ -270,8 +270,8 @@ impl Scheduler {
         local: &LocalRuntimeConfig,
     ) -> SchedulerBlockInfo
     where
-        In: Clone + Serialize + DeserializeOwned + Send + 'static,
-        Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+        In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+        Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         OperatorChain: Operator<Out>,
     {
         let max_parallelism = block.scheduler_requirements.max_parallelism;
@@ -304,8 +304,8 @@ impl Scheduler {
         remote: &RemoteRuntimeConfig,
     ) -> SchedulerBlockInfo
     where
-        In: Clone + Serialize + DeserializeOwned + Send + 'static,
-        Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+        In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+        Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         OperatorChain: Operator<Out>,
     {
         let max_parallelism = block.scheduler_requirements.max_parallelism;

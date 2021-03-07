@@ -1,6 +1,5 @@
-use async_std::sync::{Arc, Mutex};
-
-pub use collect_vec::*;
+use async_std::sync::Arc;
+use atomic_refcell::AtomicRefCell;
 
 use crate::operator::Operator;
 
@@ -8,7 +7,7 @@ mod collect_vec;
 
 pub trait Sink: Operator<()> {}
 
-pub type StreamOutputRef<Out> = Arc<Mutex<Option<Out>>>;
+pub type StreamOutputRef<Out> = Arc<AtomicRefCell<Option<Out>>>;
 
 pub struct StreamOutput<Out> {
     result: StreamOutputRef<Out>,
@@ -16,9 +15,6 @@ pub struct StreamOutput<Out> {
 
 impl<Out> StreamOutput<Out> {
     pub fn get(self) -> Option<Out> {
-        self.result
-            .try_lock()
-            .expect("Cannot lock output result")
-            .take()
+        self.result.borrow_mut().take()
     }
 }

@@ -8,6 +8,7 @@ use crate::network::{Coord, NetworkMessage, NetworkSender};
 use crate::scheduler::ExecutionMetadata;
 use itertools::Itertools;
 use rand::{thread_rng, Rng};
+use std::fmt::{Display, Formatter};
 
 /// The list with the interesting senders of a single block.
 #[derive(Debug, Clone)]
@@ -21,7 +22,7 @@ pub(crate) struct SenderList(pub Vec<Coord>);
 #[derivative(Debug)]
 pub(crate) enum NextStrategy<Out>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     /// Only one of the replicas will receive the message:
     ///
@@ -38,7 +39,7 @@ where
 
 impl<Out> NextStrategy<Out>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     /// Convert a `NextStrategy` of a type to another. `GroupBy` cannot be converted since it should
     /// be used only at the end of the block.
@@ -47,7 +48,7 @@ where
     /// `From<NextStrategy<A>> for NextStrategy<A>` inside the `core` crate.
     pub fn into<NewOut>(self) -> NextStrategy<NewOut>
     where
-        NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+        NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     {
         match self {
             NextStrategy::OnlyOne => NextStrategy::OnlyOne,
@@ -113,7 +114,7 @@ where
 
 impl<Out> NextStrategy<Out>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     /// Compute the index of the replica which this message should be forwarded to.
     pub fn index(&self, message: &Out) -> usize {
@@ -121,6 +122,19 @@ where
             NextStrategy::OnlyOne => 0,
             NextStrategy::Random => thread_rng().gen(),
             NextStrategy::GroupBy(keyer) => keyer(message),
+        }
+    }
+}
+
+impl<Out> Display for NextStrategy<Out>
+where
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NextStrategy::OnlyOne => write!(f, "OnlyOne"),
+            NextStrategy::Random => write!(f, "Random"),
+            NextStrategy::GroupBy(_) => write!(f, "GroupBy"),
         }
     }
 }

@@ -11,8 +11,8 @@ use rstream::operator::source;
 async fn main() {
     env_logger::init();
 
-    // let config = EnvironmentConfig::local(4);
-    let config = EnvironmentConfig::remote("config.yml").await.unwrap();
+    let config = EnvironmentConfig::local(4);
+    // let config = EnvironmentConfig::remote("config.yml").await.unwrap();
     let mut env = StreamEnvironment::new(config);
 
     env.spawn_remote_workers().await;

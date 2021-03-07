@@ -5,15 +5,16 @@ use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
+use crate::operator::source::SourceLoader;
 use crate::operator::{Operator, StreamElement};
 use crate::scheduler::ExecutionMetadata;
 use crate::stream::{KeyValue, KeyedStream, Stream};
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
-pub struct Map<Out, NewOut, PreviousOperators>
+pub(crate) struct Map<Out, NewOut, PreviousOperators>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     PreviousOperators: Operator<Out>,
 {
     prev: PreviousOperators,
@@ -24,16 +25,16 @@ where
 #[async_trait]
 impl<Out, NewOut, PreviousOperators> Operator<NewOut> for Map<Out, NewOut, PreviousOperators>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
-    NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     PreviousOperators: Operator<Out> + Send,
 {
-    async fn setup(&mut self, metadata: ExecutionMetadata) {
-        self.prev.setup(metadata).await;
+    async fn setup(&mut self, metadata: ExecutionMetadata) -> SourceLoader {
+        self.prev.setup(metadata).await
     }
 
-    async fn next(&mut self) -> StreamElement<NewOut> {
-        self.prev.next().await.map(&*self.f)
+    fn next(&mut self) -> Option<StreamElement<NewOut>> {
+        Some(self.prev.next()?.map(&*self.f))
     }
 
     fn to_string(&self) -> String {
@@ -48,13 +49,13 @@ where
 
 impl<In, Out, OperatorChain> Stream<In, Out, OperatorChain>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out> + Send + 'static,
 {
     pub fn map<NewOut, F>(self, f: F) -> Stream<In, NewOut, impl Operator<NewOut>>
     where
-        NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+        NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         F: Fn(Out) -> NewOut + Send + Sync + 'static,
     {
         self.add_operator(|prev| Map {
@@ -66,9 +67,9 @@ where
 
 impl<In, Key, Out, OperatorChain> KeyedStream<In, Key, Out, OperatorChain>
 where
-    Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
 {
     pub fn map<NewOut, F>(
@@ -76,7 +77,7 @@ where
         f: F,
     ) -> KeyedStream<In, Key, NewOut, impl Operator<KeyValue<Key, NewOut>>>
     where
-        NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+        NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         F: Fn(KeyValue<Key, Out>) -> NewOut + Send + Sync + 'static,
     {
         self.add_operator(|prev| Map {
@@ -88,13 +89,14 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use async_std::stream::from_iter;
+    use itertools::Itertools;
 
     use crate::config::EnvironmentConfig;
     use crate::environment::StreamEnvironment;
     use crate::operator::source;
-    use itertools::Itertools;
-    use std::str::FromStr;
 
     #[async_std::test]
     async fn map_stream() {

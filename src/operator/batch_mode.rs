@@ -9,8 +9,8 @@ use crate::stream::{KeyValue, KeyedStream, Stream};
 
 impl<In, Out, OperatorChain> Stream<In, Out, OperatorChain>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out> + Send + 'static,
 {
     pub fn batch_mode(mut self, batch_mode: BatchMode) -> Self {
@@ -21,9 +21,9 @@ where
 
 impl<In, Key, Out, OperatorChain> KeyedStream<In, Key, Out, OperatorChain>
 where
-    Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
 {
     pub fn batch_mode(mut self, batch_mode: BatchMode) -> Self {

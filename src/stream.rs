@@ -5,10 +5,10 @@ use std::rc::Rc;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::block::{BatchMode, InnerBlock, NextStrategy};
+use crate::block::InnerBlock;
 use crate::environment::StreamEnvironmentInner;
+use crate::operator::start::StartBlock;
 use crate::operator::Operator;
-use crate::operator::StartBlock;
 
 /// Identifier of a block in the job graph.
 pub type BlockId = usize;
@@ -28,8 +28,8 @@ pub type KeyValue<Key, Value> = (Key, Value);
 /// blocks inside of it.
 pub struct Stream<In, Out, OperatorChain>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out>,
 {
     /// The last block inside the stream.
@@ -47,15 +47,15 @@ pub struct KeyedStream<In, Key, Out, OperatorChain>(
     pub Stream<In, KeyValue<Key, Out>, OperatorChain>,
 )
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<KeyValue<Key, Out>>;
 
 impl<In, Out, OperatorChain> Stream<In, Out, OperatorChain>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out> + Send + 'static,
 {
     /// Add a new operator to the current chain inside the stream. This consumes the stream and
@@ -69,7 +69,7 @@ where
         get_operator: GetOp,
     ) -> Stream<In, NewOut, Op>
     where
-        NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+        NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         Op: Operator<NewOut> + 'static,
         GetOp: FnOnce(OperatorChain) -> Op,
     {
@@ -95,28 +95,17 @@ where
     /// be an `Operator<()>`.
     ///
     /// The new block is initialized with a `StartBlock`.
-    pub(crate) fn add_block<GetEndOp, Op>(
-        self,
-        get_end_operator: GetEndOp,
-    ) -> Stream<Out, Out, StartBlock<Out>>
-    where
-        Op: Operator<()> + Send + 'static,
-        GetEndOp: FnOnce(OperatorChain, NextStrategy<Out>, BatchMode) -> Op,
-    {
-        let next_strategy = self.block.next_strategy.clone();
-        let batch_mode = self.block.batch_mode;
-        let old_stream =
-            self.add_operator(|prev| get_end_operator(prev, next_strategy, batch_mode));
-        let mut env = old_stream.env.borrow_mut();
-        let old_id = old_stream.block.id;
+    pub(crate) fn add_block(self) -> Stream<Out, Out, StartBlock<Out>> {
+        let mut env = self.env.borrow_mut();
+        let old_id = self.block.id;
         let new_id = env.new_block();
         let scheduler = env.scheduler_mut();
-        scheduler.add_block(old_stream.block);
+        scheduler.add_block(self.block);
         scheduler.connect_blocks(old_id, new_id);
         drop(env);
         Stream {
             block: InnerBlock::new(new_id, StartBlock::default()),
-            env: old_stream.env,
+            env: self.env,
         }
     }
 
@@ -131,9 +120,9 @@ where
 
 impl<In, Key, Out, OperatorChain> KeyedStream<In, Key, Out, OperatorChain>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Key: Clone + Serialize + DeserializeOwned + Send + Hash + Eq + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Key: Clone + Serialize + DeserializeOwned + Send + Sync + Hash + Eq + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
 {
     pub(crate) fn add_operator<NewOut, Op, GetOp>(
@@ -141,7 +130,7 @@ where
         get_operator: GetOp,
     ) -> KeyedStream<In, Key, NewOut, Op>
     where
-        NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+        NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         Op: Operator<KeyValue<Key, NewOut>> + 'static,
         GetOp: FnOnce(OperatorChain) -> Op,
     {

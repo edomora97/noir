@@ -14,7 +14,7 @@ async fn main() {
         .nth(1)
         .expect("Pass the dataset path as an argument");
 
-    let config = EnvironmentConfig::local(8);
+    let config = EnvironmentConfig::local(1);
     // let config = EnvironmentConfig::remote("config.yml").await.unwrap();
     let mut env = StreamEnvironment::new(config);
 
@@ -30,7 +30,11 @@ async fn main() {
         .unkey();
     let result = stream.collect_vec();
     env.execute().await;
-    println!("Output: {:?}", result.get());
+    // println!("Output: {:?}", result.get());
+
+    for line in result.get().unwrap() {
+        println!("{} {}", line.0, line.1);
+    }
 }
 
 struct Tokenizer {

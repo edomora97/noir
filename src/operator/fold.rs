@@ -4,17 +4,18 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::block::NextStrategy;
-use crate::operator::{EndBlock, Operator, StreamElement, Timestamp};
+use crate::operator::source::SourceLoader;
+use crate::operator::{Operator, StreamElement, Timestamp};
 use crate::scheduler::ExecutionMetadata;
 use crate::stream::Stream;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
-pub struct Fold<Out, NewOut, PreviousOperators>
+pub(crate) struct Fold<Out, NewOut, PreviousOperators>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     PreviousOperators: Operator<Out>,
-    NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+    NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     prev: PreviousOperators,
     #[derivative(Debug = "ignore")]
@@ -29,17 +30,17 @@ where
 #[async_trait]
 impl<Out, NewOut, PreviousOperators> Operator<NewOut> for Fold<Out, NewOut, PreviousOperators>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
-    NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     PreviousOperators: Operator<Out> + Send,
 {
-    async fn setup(&mut self, metadata: ExecutionMetadata) {
-        self.prev.setup(metadata).await;
+    async fn setup(&mut self, metadata: ExecutionMetadata) -> SourceLoader {
+        self.prev.setup(metadata).await
     }
 
-    async fn next(&mut self) -> StreamElement<NewOut> {
+    fn next(&mut self) -> Option<StreamElement<NewOut>> {
         while !self.received_end {
-            match self.prev.next().await {
+            match self.prev.next()? {
                 StreamElement::End => self.received_end = true,
                 StreamElement::Watermark(ts) => {
                     self.max_watermark = Some(self.max_watermark.unwrap_or(ts).max(ts))
@@ -63,18 +64,18 @@ where
         // If there is an accumulated value, return it
         if let Some(acc) = self.accumulator.take() {
             if let Some(ts) = self.timestamp.take() {
-                return StreamElement::Timestamped(acc, ts);
+                return Some(StreamElement::Timestamped(acc, ts));
             } else {
-                return StreamElement::Item(acc);
+                return Some(StreamElement::Item(acc));
             }
         }
 
         // If watermark were received, send one downstream
         if let Some(ts) = self.max_watermark.take() {
-            return StreamElement::Watermark(ts);
+            return Some(StreamElement::Watermark(ts));
         }
 
-        StreamElement::End
+        Some(StreamElement::End)
     }
 
     fn to_string(&self) -> String {
@@ -89,8 +90,8 @@ where
 
 impl<In, Out, OperatorChain> Stream<In, Out, OperatorChain>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out> + Send + 'static,
 {
     pub fn fold<NewOut, Local, Global>(
@@ -100,7 +101,7 @@ where
         global: Global,
     ) -> Stream<NewOut, NewOut, impl Operator<NewOut>>
     where
-        NewOut: Clone + Serialize + DeserializeOwned + Send + 'static,
+        NewOut: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
         Local: Fn(NewOut, Out) -> NewOut + Send + Sync + 'static,
         Global: Fn(NewOut, NewOut) -> NewOut + Send + Sync + 'static,
     {
@@ -116,7 +117,7 @@ where
                 max_watermark: None,
                 received_end: false,
             })
-            .add_block(EndBlock::new);
+            .add_block();
 
         // Global fold (which is done on only one node)
         second_part.block.scheduler_requirements.max_parallelism(1);

@@ -3,14 +3,15 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::operator::sink::{Sink, StreamOutput, StreamOutputRef};
-use crate::operator::{EndBlock, Operator, StreamElement};
+use crate::operator::source::SourceLoader;
+use crate::operator::{Operator, StreamElement};
 use crate::scheduler::ExecutionMetadata;
 use crate::stream::Stream;
 
 #[derive(Debug)]
-pub struct CollectVecSink<Out, PreviousOperators>
+pub(crate) struct CollectVecSink<Out, PreviousOperators>
 where
-    Out: Clone + Serialize + DeserializeOwned + Send + 'static,
+    Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     PreviousOperators: Operator<Out>,
 {
     prev: PreviousOperators,
@@ -24,12 +25,12 @@ where
     Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     PreviousOperators: Operator<Out> + Send,
 {
-    async fn setup(&mut self, metadata: ExecutionMetadata) {
-        self.prev.setup(metadata).await;
+    async fn setup(&mut self, metadata: ExecutionMetadata) -> SourceLoader {
+        self.prev.setup(metadata).await
     }
 
-    async fn next(&mut self) -> StreamElement<()> {
-        match self.prev.next().await {
+    fn next(&mut self) -> Option<StreamElement<()>> {
+        Some(match self.prev.next()? {
             StreamElement::Item(t) | StreamElement::Timestamped(t, _) => {
                 // cloned CollectVecSink or already ended stream
                 if let Some(result) = self.result.as_mut() {
@@ -40,11 +41,11 @@ where
             StreamElement::Watermark(w) => StreamElement::Watermark(w),
             StreamElement::End => {
                 if let Some(result) = self.result.take() {
-                    *self.output.lock().await = Some(result);
+                    *self.output.borrow_mut() = Some(result);
                 }
                 StreamElement::End
             }
-        }
+        })
     }
 
     fn to_string(&self) -> String {
@@ -71,13 +72,13 @@ where
 
 impl<In, Out, OperatorChain> Stream<In, Out, OperatorChain>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out> + Send + 'static,
 {
     pub fn collect_vec(self) -> StreamOutput<Vec<Out>> {
         let output = StreamOutputRef::default();
-        let mut new_stream = self.add_block(EndBlock::new);
+        let mut new_stream = self.add_block();
         // FIXME: when implementing Stream::max_parallelism use that here
         new_stream.block.scheduler_requirements.max_parallelism(1);
         new_stream

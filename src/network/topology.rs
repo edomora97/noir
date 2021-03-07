@@ -17,7 +17,7 @@ use async_std::channel::Sender;
 struct ReceiverKey<In>(PhantomData<In>);
 impl<In> Key for ReceiverKey<In>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     type Value = HashMap<Coord, NetworkReceiver<NetworkMessage<In>>>;
 }
@@ -26,7 +26,7 @@ where
 struct SenderKey<In>(PhantomData<In>);
 impl<In> Key for SenderKey<In>
 where
-    In: Clone + Serialize + DeserializeOwned + Send + 'static,
+    In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     type Value = HashMap<Coord, NetworkSender<NetworkMessage<In>>>;
 }
@@ -126,7 +126,7 @@ impl NetworkTopology {
     /// after `start_remote` has been called.
     pub(crate) fn register_replica<T>(&mut self, coord: Coord)
     where
-        T: Clone + Serialize + DeserializeOwned + Send + 'static,
+        T: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     {
         debug!("Registering {}", coord);
         let address = match &self.config.runtime {
@@ -176,7 +176,7 @@ impl NetworkTopology {
     /// The replica must be registered and `start_remote` must have been called and awaited.
     pub fn get_sender<T>(&self, coord: Coord) -> NetworkSender<NetworkMessage<T>>
     where
-        T: Clone + Serialize + DeserializeOwned + Send + 'static,
+        T: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     {
         let metadata = self.senders_metadata.get(&coord).unwrap_or_else(|| {
             panic!("No sender registered for {}", coord);
@@ -214,7 +214,7 @@ impl NetworkTopology {
     /// Get all the outgoing senders from a replica.
     pub fn get_senders<T>(&self, coord: Coord) -> HashMap<Coord, NetworkSender<NetworkMessage<T>>>
     where
-        T: Clone + Serialize + DeserializeOwned + Send + 'static,
+        T: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     {
         match self.next.get(&coord) {
             None => Default::default(),
@@ -225,7 +225,7 @@ impl NetworkTopology {
     /// Get the receiver of all the ingoing messages to a replica.
     pub fn get_receiver<T>(&mut self, coord: Coord) -> NetworkReceiver<NetworkMessage<T>>
     where
-        T: Clone + Serialize + DeserializeOwned + Send + 'static,
+        T: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     {
         let t_type_name = std::any::type_name::<T>();
         let map = self
