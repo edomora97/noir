@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate log;
 use std::env;
 
 use regex::Regex;
@@ -5,8 +7,9 @@ use regex::Regex;
 use rstream::config::EnvironmentConfig;
 use rstream::environment::StreamEnvironment;
 use rstream::operator::source;
+use tokio::time::Instant;
 
-#[async_std::main]
+#[tokio::main]
 async fn main() {
     env_logger::init();
 
@@ -29,8 +32,16 @@ async fn main() {
         .fold(0, |count, _word| count + 1)
         .unkey();
     let result = stream.collect_vec();
+    let start = Instant::now();
     env.execute().await;
-    println!("Output: {:?}", result.get());
+    let duration = start.elapsed();
+    // println!("Output: {:?}", result.get());
+
+    // for line in result.get().unwrap() {
+    //     println!("{} {}", line.0, line.1);
+    // }
+    info!("Elapsed: {:?}", duration);
+    // println!("Output: {:?}", result.get());
 }
 
 struct Tokenizer {

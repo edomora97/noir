@@ -1,13 +1,13 @@
 #[macro_use]
 extern crate log;
 
-use async_std::stream::from_iter;
+use tokio_stream::iter;
 
 use rstream::config::EnvironmentConfig;
 use rstream::environment::StreamEnvironment;
 use rstream::operator::source;
 
-#[async_std::main]
+#[tokio::main]
 async fn main() {
     env_logger::init();
 
@@ -17,7 +17,7 @@ async fn main() {
 
     env.spawn_remote_workers().await;
 
-    let source = source::StreamSource::new(from_iter(90..110u8));
+    let source = source::StreamSource::new(iter(90..110u8));
     let stream = env
         .stream(source)
         .map(|x| x.to_string())

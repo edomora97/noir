@@ -1,7 +1,7 @@
-use async_std::sync::Arc;
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use std::sync::Arc;
 
 use crate::block::NextStrategy;
 use crate::operator::{EndBlock, Operator, StreamElement, Timestamp};
@@ -134,13 +134,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use async_std::stream::from_iter;
+    use tokio::stream::from_iter;
 
     use crate::config::EnvironmentConfig;
     use crate::environment::StreamEnvironment;
     use crate::operator::source;
 
-    #[async_std::test]
+    #[tokio::test]
     async fn fold_stream() {
         let mut env = StreamEnvironment::new(EnvironmentConfig::local(4));
         let source = source::StreamSource::new(from_iter(0..10u8));

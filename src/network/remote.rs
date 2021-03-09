@@ -1,9 +1,10 @@
-use async_std::net::TcpStream;
-use async_std::prelude::*;
 use bincode::config::{FixintEncoding, RejectTrailing, WithOtherIntEncoding, WithOtherTrailing};
 use bincode::{DefaultOptions, Options};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use tokio::io::AsyncReadExt;
+use tokio::io::AsyncWriteExt;
+use tokio::net::TcpStream;
 
 use crate::network::Coord;
 

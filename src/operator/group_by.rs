@@ -1,9 +1,9 @@
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
-use async_std::sync::Arc;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use std::sync::Arc;
 
 use crate::block::NextStrategy;
 use crate::operator::EndBlock;
@@ -47,14 +47,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use async_std::stream::from_iter;
     use itertools::Itertools;
+    use tokio::stream::from_iter;
 
     use crate::config::EnvironmentConfig;
     use crate::environment::StreamEnvironment;
     use crate::operator::source;
 
-    #[async_std::test]
+    #[tokio::test]
     async fn group_by_stream() {
         let mut env = StreamEnvironment::new(EnvironmentConfig::local(4));
         let source = source::StreamSource::new(from_iter(0..100u8));

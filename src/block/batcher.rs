@@ -1,12 +1,12 @@
 use std::num::NonZeroUsize;
 use std::time::Duration;
 
-use async_std::channel::{bounded, Receiver, Sender};
-use async_std::future::timeout;
-use async_std::task::spawn;
-use async_std::task::JoinHandle;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use tokio::sync::mpsc::{channel, Receiver, Sender};
+use tokio::task::spawn;
+use tokio::task::JoinHandle;
+use tokio::time::timeout;
 
 use crate::network::{NetworkMessage, NetworkSender};
 use crate::operator::StreamElement;
@@ -16,6 +16,9 @@ use crate::operator::StreamElement;
 ///
 /// This value cannot be too big otherwise an integer overflow will happen.
 const FIXED_BATCH_MODE_MAX_DELAY: Duration = Duration::from_secs(60 * 60 * 24 * 365 * 10);
+
+/// Capacity of the channel to the `Batcher`.
+const BATCHER_CHANNEL_CAPACITY: usize = 1000;
 
 /// Which policy to use for batching the messages before sending them.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -56,7 +59,7 @@ where
     Out: Clone + Serialize + DeserializeOwned + Send + 'static,
 {
     pub(crate) fn new(remote_sender: NetworkSender<NetworkMessage<Out>>, mode: BatchMode) -> Self {
-        let (sender, receiver) = bounded(1);
+        let (sender, receiver) = channel(BATCHER_CHANNEL_CAPACITY);
         let join_handle =
             spawn(async move { Batcher::batcher_body(remote_sender, mode, receiver).await });
         Self {
@@ -70,7 +73,7 @@ where
         self.sender
             .send(BatcherMessage::Message(message))
             .await
-            .expect("Cannot enqueue if the Batcher already exited")
+            .unwrap_or_else(|_| panic!("Cannot enqueue if the Batcher already exited"))
     }
 
     /// Tell the batcher that the stream is ended, flush all the messages and join the internal
@@ -79,15 +82,15 @@ where
         self.sender
             .send(BatcherMessage::End)
             .await
-            .expect("Cannot enqueue if the Batcher already exited");
-        self.join_handle.await;
+            .unwrap_or_else(|_| panic!("Cannot end if the Batcher already exited"));
+        self.join_handle.await.unwrap();
     }
 
     /// The body of the internal task that does the batching.
     async fn batcher_body(
         sender: NetworkSender<NetworkMessage<Out>>,
         mode: BatchMode,
-        receiver: Receiver<BatcherMessage<Out>>,
+        mut receiver: Receiver<BatcherMessage<Out>>,
     ) {
         debug!(
             "Batcher to {} is ready for working in mode {:?}",
@@ -96,7 +99,7 @@ where
         let mut batch = Vec::with_capacity(mode.max_capacity());
         loop {
             match timeout(mode.max_delay(), receiver.recv()).await {
-                Ok(Ok(message)) => {
+                Ok(Some(message)) => {
                     match message {
                         BatcherMessage::Message(mex) => {
                             batch.push(mex);
@@ -115,6 +118,7 @@ where
                         }
                     }
                 }
+                Ok(None) => break,
                 Err(_) => {
                     // timeout occurred
                     if !batch.is_empty() {
@@ -122,7 +126,6 @@ where
                         batch = Vec::with_capacity(mode.max_capacity());
                     }
                 }
-                Ok(Err(_)) => break,
             }
         }
     }

@@ -5,9 +5,9 @@ use std::io::BufReader;
 use std::net::TcpStream;
 use std::path::Path;
 
-use async_std::task::spawn_blocking;
 use itertools::Itertools;
 use ssh2::Session;
+use tokio::task::spawn_blocking;
 
 use crate::config::{RemoteHostConfig, RemoteRuntimeConfig};
 use crate::scheduler::HostId;
@@ -43,7 +43,7 @@ pub(crate) async fn spawn_remote_workers(config: RemoteRuntimeConfig) {
         join_handles.push(join_handle);
     }
     for join_handle in join_handles {
-        join_handle.await;
+        join_handle.await.unwrap();
     }
     // all the remote processes have finished, exit to avoid running the environment inside the
     // spawner process

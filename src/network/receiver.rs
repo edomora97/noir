@@ -1,11 +1,12 @@
 use anyhow::{anyhow, Result};
-use async_std::channel::{bounded, Receiver, Sender};
-use async_std::net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs};
-use async_std::stream::StreamExt;
-use async_std::task::spawn;
-use async_std::task::JoinHandle;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use tokio::io::AsyncWriteExt;
+use tokio::net::lookup_host;
+use tokio::net::{TcpListener, TcpStream};
+use tokio::sync::mpsc::{channel, Receiver, Sender};
+use tokio::task::spawn;
+use tokio::task::JoinHandle;
 
 use crate::network::remote::remote_recv;
 use crate::network::{Coord, NetworkSender};
@@ -49,8 +50,8 @@ where
     ///   connect remotely to that socket. When they all connects the socket is unbound.
     /// - an handle where to wait for the socket task
     pub fn new(coord: Coord, address: (String, u16)) -> (Self, Sender<usize>, JoinHandle<()>) {
-        let (sender, receiver) = bounded(CHANNEL_CAPACITY);
-        let (bind_socket, bind_socket_rx) = bounded(CHANNEL_CAPACITY);
+        let (sender, receiver) = channel(CHANNEL_CAPACITY);
+        let (bind_socket, bind_socket_rx) = channel(CHANNEL_CAPACITY);
         let local_sender = sender.clone();
         let join_handle = spawn(async move {
             NetworkReceiver::bind_remote(coord, local_sender, address, bind_socket_rx).await;
@@ -72,11 +73,11 @@ where
     }
 
     /// Receive a message from any sender.
-    pub async fn recv(&self) -> Result<In> {
+    pub async fn recv(&mut self) -> Result<In> {
         self.receiver
             .recv()
             .await
-            .map_err(|e| anyhow!("Failed to receive from channel at {}: {:?}", self.coord, e))
+            .ok_or_else(|| anyhow!("Failed to receive from channel at {}", self.coord))
     }
 
     /// The async task that will eventually bind the socket.
@@ -87,7 +88,7 @@ where
         coord: Coord,
         local_sender: Sender<In>,
         address: (String, u16),
-        bind_socket: Receiver<usize>,
+        mut bind_socket: Receiver<usize>,
     ) {
         // wait the signal before binding the socket
         let num_connections = bind_socket.recv().await.unwrap();
@@ -100,8 +101,7 @@ where
         }
         // from now we can start binding the socket
         let address = (address.0.as_ref(), address.1);
-        let address: Vec<_> = address
-            .to_socket_addrs()
+        let address: Vec<_> = lookup_host(address)
             .await
             .map_err(|e| format!("Failed to get the address for {}: {:?}", coord, e))
             .unwrap()
@@ -126,23 +126,12 @@ where
             coord, num_connections, address
         );
         let local_sender = local_sender.clone();
-        let mut incoming = listener.incoming();
         let mut join_handles = Vec::new();
         for conn_num in 1..=num_connections {
-            let stream = incoming.next().await.unwrap();
-            let stream = match stream {
-                Ok(stream) => stream,
-                Err(e) => {
-                    warn!("Failed to accept incoming connection at {}: {:?}", coord, e);
-                    continue;
-                }
-            };
+            let (stream, remote_addr) = listener.accept().await.unwrap();
             info!(
                 "Remote receiver at {} accepted a new connection from {:?} ({} / {})",
-                coord,
-                stream.peer_addr(),
-                conn_num,
-                num_connections
+                coord, remote_addr, conn_num, num_connections
             );
             let local_sender = local_sender.clone();
             let join_handle = spawn(async move {
@@ -155,7 +144,7 @@ where
             coord, address, num_connections
         );
         for join_handle in join_handles {
-            join_handle.await;
+            join_handle.await.unwrap();
         }
         debug!(
             "Remote receiver at {} ({}) finished, exiting...",
@@ -173,11 +162,12 @@ where
             .map(|a| a.to_string())
             .unwrap_or_else(|_| "unknown".to_string());
         while let Some(message) = remote_recv(coord, &mut receiver).await {
-            local_sender.send(message).await.unwrap_or_else(|e| {
-                panic!("Failed to send to local receiver at {}: {:?}", coord, e)
-            });
+            local_sender
+                .send(message)
+                .await
+                .unwrap_or_else(|_| panic!("Failed to send to local receiver at {}", coord));
         }
-        let _ = receiver.shutdown(Shutdown::Both);
+        let _ = receiver.shutdown();
         debug!("Remote receiver for {} at {} exited", coord, address);
     }
 }

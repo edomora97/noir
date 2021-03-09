@@ -1,8 +1,7 @@
-use std::collections::VecDeque;
-
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use std::collections::VecDeque;
 
 use crate::network::{NetworkMessage, NetworkReceiver};
 use crate::operator::{Operator, StreamElement};
@@ -45,7 +44,7 @@ where
             info!("StartBlock for {} has ended", metadata.coord);
             return StreamElement::End;
         }
-        let receiver = self.receiver.as_ref().unwrap();
+        let receiver = self.receiver.as_mut().unwrap();
         if self.buffer.is_empty() {
             // receive from any previous block
             let buf = receiver.recv().await.unwrap();

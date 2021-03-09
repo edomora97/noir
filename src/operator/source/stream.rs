@@ -1,8 +1,7 @@
-use async_std::stream;
-use async_std::stream::StreamExt;
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use tokio_stream::StreamExt;
 
 use crate::operator::source::Source;
 use crate::operator::{Operator, StreamElement};
@@ -12,13 +11,13 @@ use crate::scheduler::ExecutionMetadata;
 #[derivative(Debug)]
 pub struct StreamSource<Out> {
     #[derivative(Debug = "ignore")]
-    inner: Box<dyn stream::Stream<Item = Out> + Unpin + Send>,
+    inner: Box<dyn tokio_stream::Stream<Item = Out> + Unpin + Send>,
 }
 
 impl<Out> StreamSource<Out> {
     pub fn new<S>(inner: S) -> Self
     where
-        S: stream::Stream<Item = Out> + Unpin + Send + 'static,
+        S: tokio_stream::Stream<Item = Out> + Unpin + Send + 'static,
     {
         Self {
             inner: Box::new(inner),

@@ -1,14 +1,14 @@
-use std::io::ErrorKind;
 use std::time::Duration;
 
 use anyhow::{anyhow, Result};
-use async_std::channel::{bounded, Receiver, Sender};
-use async_std::io::timeout;
-use async_std::net::{Shutdown, TcpStream, ToSocketAddrs};
-use async_std::task::spawn;
-use async_std::task::{sleep, JoinHandle};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use tokio::io::AsyncWriteExt;
+use tokio::net::{lookup_host, TcpStream};
+use tokio::sync::mpsc::{channel, Receiver, Sender};
+use tokio::task::spawn;
+use tokio::task::JoinHandle;
+use tokio::time::{sleep, timeout};
 
 use crate::network::remote::remote_send;
 use crate::network::{wait_start, Coord, NetworkStarter, NetworkStarterRecv};
@@ -54,8 +54,8 @@ where
 
     /// Create a new remote sender that will send the data via a socket to the specified address.
     pub fn remote(coord: Coord, address: (String, u16)) -> (Self, NetworkStarter, JoinHandle<()>) {
-        let (sender, receiver) = bounded(CHANNEL_CAPACITY);
-        let (connect_socket, connect_socket_rx) = bounded(CHANNEL_CAPACITY);
+        let (sender, receiver) = channel(CHANNEL_CAPACITY);
+        let (connect_socket, connect_socket_rx) = channel(CHANNEL_CAPACITY);
         let join_handle = spawn(async move {
             NetworkSender::connect_remote(coord, receiver, address, connect_socket_rx).await;
         });
@@ -67,7 +67,7 @@ where
         self.sender
             .send(item)
             .await
-            .map_err(|e| anyhow!("Failed to send to channel to {}: {:?}", self.coord, e))
+            .map_err(|_| anyhow!("Failed to send to channel to {}", self.coord))
     }
 
     /// Connect the sender to a remote channel located at the specified address.
@@ -92,8 +92,7 @@ where
         }
 
         let address = (address.0.as_str(), address.1);
-        let address: Vec<_> = address
-            .to_socket_addrs()
+        let address: Vec<_> = lookup_host(address)
             .await
             .map_err(|e| format!("Failed to get the address for {}: {:?}", coord, e))
             .unwrap()
@@ -106,30 +105,28 @@ where
             );
             let connect_fut = TcpStream::connect(&*address);
             match timeout(CONNECT_TIMEOUT, connect_fut).await {
-                Ok(stream) => {
+                Ok(Ok(stream)) => {
                     NetworkSender::handle_remote_connection(coord, local_receiver, stream).await;
                     return;
                 }
-                Err(err) => {
-                    match err.kind() {
-                        ErrorKind::TimedOut => {
-                            debug!(
-                                "Timeout connecting to {} at {:?}, retry in {}s",
-                                coord,
-                                address,
-                                retry_delay.as_secs_f32(),
-                            );
-                        }
-                        _ => {
-                            debug!(
-                                "Failed to connect to {} at {:?}, retry in {}s: {:?}",
-                                coord,
-                                address,
-                                retry_delay.as_secs_f32(),
-                                err
-                            );
-                        }
-                    }
+                Ok(Err(err)) => {
+                    debug!(
+                        "Failed to connect to {} at {:?}, retry in {}s: {:?}",
+                        coord,
+                        address,
+                        retry_delay.as_secs_f32(),
+                        err
+                    );
+                    sleep(retry_delay).await;
+                    retry_delay = (2 * retry_delay).min(RETRY_MAX_TIMEOUT);
+                }
+                Err(_) => {
+                    debug!(
+                        "Timeout connecting to {} at {:?}, retry in {}s",
+                        coord,
+                        address,
+                        retry_delay.as_secs_f32(),
+                    );
                     sleep(retry_delay).await;
                     retry_delay = (2 * retry_delay).min(RETRY_MAX_TIMEOUT);
                 }
@@ -147,7 +144,7 @@ where
     /// replica.
     async fn handle_remote_connection(
         coord: Coord,
-        local_receiver: Receiver<Out>,
+        mut local_receiver: Receiver<Out>,
         mut stream: TcpStream,
     ) {
         let address = stream
@@ -155,10 +152,10 @@ where
             .map(|a| a.to_string())
             .unwrap_or_else(|_| "unknown".to_string());
         debug!("Connection to {} at {} established", coord, address);
-        while let Ok(out) = local_receiver.recv().await {
+        while let Some(out) = local_receiver.recv().await {
             remote_send(out, coord, &mut stream).await;
         }
-        let _ = stream.shutdown(Shutdown::Both);
+        let _ = stream.shutdown();
         debug!("Remote sender for {} exited", coord);
     }
 }

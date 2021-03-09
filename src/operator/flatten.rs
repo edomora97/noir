@@ -3,10 +3,10 @@ use std::collections::VecDeque;
 use std::hash::Hash;
 use std::iter::repeat;
 
-use async_std::sync::Arc;
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use std::sync::Arc;
 
 use crate::operator::{Operator, StreamElement};
 use crate::scheduler::ExecutionMetadata;
@@ -151,14 +151,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use async_std::stream::from_iter;
     use itertools::Itertools;
+    use tokio::stream::from_iter;
 
     use crate::config::EnvironmentConfig;
     use crate::environment::StreamEnvironment;
     use crate::operator::source;
 
-    #[async_std::test]
+    #[tokio::test]
     async fn flatten_stream() {
         let mut env = StreamEnvironment::new(EnvironmentConfig::local(4));
         let source = source::StreamSource::new(from_iter(vec![
@@ -174,7 +174,7 @@ mod tests {
         assert_eq!(res.get().unwrap(), (1..=8).collect_vec());
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn flatten_keyed_stream() {
         let mut env = StreamEnvironment::new(EnvironmentConfig::local(4));
         let source = source::StreamSource::new(from_iter(0..10u8));
@@ -194,7 +194,7 @@ mod tests {
         assert_eq!(expected, res);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn flat_map_stream() {
         let mut env = StreamEnvironment::new(EnvironmentConfig::local(4));
         let source = source::StreamSource::new(from_iter(0..10u8));
@@ -209,7 +209,7 @@ mod tests {
         assert_eq!(res.get().unwrap(), expected);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn flat_map_keyed_stream() {
         let mut env = StreamEnvironment::new(EnvironmentConfig::local(4));
         let source = source::StreamSource::new(from_iter(0..10u8));

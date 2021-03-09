@@ -1,8 +1,9 @@
-use async_std::fs::File;
-use async_std::io::{BufReader, SeekFrom};
-use async_std::path::PathBuf;
-use async_std::prelude::*;
 use async_trait::async_trait;
+use std::path::PathBuf;
+use tokio::fs::File;
+use tokio::io::AsyncBufReadExt;
+use tokio::io::AsyncSeekExt;
+use tokio::io::{BufReader, SeekFrom};
 
 use crate::operator::source::Source;
 use crate::operator::{Operator, StreamElement};
@@ -43,7 +44,7 @@ impl Operator<String> for FileSource {
         let global_id = metadata.global_id;
         let num_replicas = metadata.num_replicas;
 
-        let file = File::open(&self.path)
+        let mut file = File::open(&self.path)
             .await
             .expect("FileSource: error while opening file");
         let file_size = file.metadata().await.unwrap().len() as usize;
@@ -57,12 +58,11 @@ impl Operator<String> for FileSource {
             start + range_size
         };
 
-        let mut reader = BufReader::new(file);
         // Seek reader to the first byte to be read
-        reader
-            .seek(SeekFrom::Current(start as i64))
+        file.seek(SeekFrom::Current(start as i64))
             .await
             .expect("seek file");
+        let mut reader = BufReader::new(file);
         if global_id != 0 {
             // discard first line
             let mut s = String::new();

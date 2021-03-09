@@ -1,8 +1,7 @@
-use async_std::sync::{Arc, Mutex};
-
-pub use collect_vec::*;
+use std::sync::Arc;
 
 use crate::operator::Operator;
+use tokio::sync::Mutex;
 
 mod collect_vec;
 

@@ -36,14 +36,14 @@ where
 mod tests {
     use std::time::Duration;
 
-    use async_std::stream::from_iter;
+    use tokio::stream::from_iter;
 
     use crate::block::BatchMode;
     use crate::config::EnvironmentConfig;
     use crate::environment::StreamEnvironment;
     use crate::operator::source;
 
-    #[async_std::test]
+    #[tokio::test]
     async fn batch_mode_fixed() {
         let mut env = StreamEnvironment::new(EnvironmentConfig::local(4));
         let source = source::StreamSource::new(from_iter(0..10u8));
@@ -52,7 +52,7 @@ mod tests {
         assert_eq!(stream.block.batch_mode, batch_mode);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn batch_mode_adaptive() {
         let mut env = StreamEnvironment::new(EnvironmentConfig::local(4));
         let source = source::StreamSource::new(from_iter(0..10u8));
