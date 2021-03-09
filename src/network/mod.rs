@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display, Formatter};
 
-use std::sync::mpsc::{Receiver, Sender, SyncSender};
+use crossbeam::channel::{Receiver, Sender};
 
 pub(crate) use receiver::*;
 pub(crate) use sender::*;
@@ -18,7 +18,7 @@ mod topology;
 /// Sender that communicate to a network component to start working. Sending `true` will make the
 /// network component start working, sending `false` or dropping all the senders will make the
 /// component exit.
-pub(crate) type NetworkStarter = SyncSender<bool>;
+pub(crate) type NetworkStarter = Sender<bool>;
 /// Receiver part of `NetworkStarter`.
 pub(crate) type NetworkStarterRecv = Receiver<bool>;
 

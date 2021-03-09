@@ -1,6 +1,6 @@
+use crossbeam::channel::{bounded, Receiver, Sender};
 use std::io::ErrorKind;
 use std::net::{Shutdown, TcpStream, ToSocketAddrs};
-use std::sync::mpsc::{sync_channel, Receiver, Sender, SyncSender};
 use std::thread::{sleep, spawn, JoinHandle};
 use std::time::Duration;
 
@@ -38,7 +38,7 @@ pub(crate) struct NetworkSender<Out> {
     /// The channel that will be used to send the message. It will be either to the local recipient
     /// or to an task that will send the message remotely.
     #[derivative(Debug = "ignore")]
-    sender: SyncSender<Out>,
+    sender: Sender<Out>,
 }
 
 impl<Out> NetworkSender<Out>
@@ -46,17 +46,14 @@ where
     Out: Serialize + DeserializeOwned + Send + 'static,
 {
     /// Create a new local sender that sends the data directly to the recipient.
-    pub fn local(coord: Coord, sender: SyncSender<Out>) -> Self {
+    pub fn local(coord: Coord, sender: Sender<Out>) -> Self {
         Self { coord, sender }
     }
 
     /// Create a new remote sender that will send the data via a socket to the specified address.
-    pub fn remote(
-        coord: Coord,
-        address: (String, u16),
-    ) -> (Self, SyncSender<bool>, JoinHandle<()>) {
-        let (sender, receiver) = sync_channel(CHANNEL_CAPACITY);
-        let (connect_socket, connect_socket_rx) = sync_channel(CHANNEL_CAPACITY);
+    pub fn remote(coord: Coord, address: (String, u16)) -> (Self, Sender<bool>, JoinHandle<()>) {
+        let (sender, receiver) = bounded(CHANNEL_CAPACITY);
+        let (connect_socket, connect_socket_rx) = bounded(CHANNEL_CAPACITY);
         let join_handle = spawn(move || {
             NetworkSender::connect_remote(coord, receiver, address, connect_socket_rx);
         });

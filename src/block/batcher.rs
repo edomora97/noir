@@ -1,9 +1,9 @@
 use std::num::NonZeroUsize;
 use std::time::Duration;
 
+use crossbeam::channel::{bounded, Receiver, RecvTimeoutError, Sender};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::sync::mpsc::{sync_channel, Receiver, RecvTimeoutError, Sender, SyncSender};
 use std::thread::{spawn, JoinHandle};
 
 use crate::network::{NetworkMessage, NetworkSender};
@@ -44,7 +44,7 @@ where
     Out: Clone + Serialize + DeserializeOwned + Send + 'static,
 {
     /// Sender to the internal task that does the batching.
-    sender: SyncSender<BatcherMessage<Out>>,
+    sender: Sender<BatcherMessage<Out>>,
     /// Handle to join the internal task.
     join_handle: JoinHandle<()>,
 }
@@ -54,7 +54,7 @@ where
     Out: Clone + Serialize + DeserializeOwned + Send + 'static,
 {
     pub(crate) fn new(remote_sender: NetworkSender<NetworkMessage<Out>>, mode: BatchMode) -> Self {
-        let (sender, receiver) = sync_channel(1);
+        let (sender, receiver) = bounded(1000);
         let join_handle = spawn(move || Batcher::batcher_body(remote_sender, mode, receiver));
         Self {
             sender,

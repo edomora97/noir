@@ -1,6 +1,6 @@
+use crossbeam::channel::Sender;
 use std::collections::{HashMap, HashSet};
 use std::marker::PhantomData;
-use std::sync::mpsc::{Sender, SyncSender};
 use std::thread::JoinHandle;
 
 use itertools::Itertools;
@@ -41,7 +41,7 @@ struct ReceiverMetadata {
     /// The starter that makes the receiver start binding the socket. `Option` because it will be
     /// moved out this structure.
     #[derivative(Debug = "ignore")]
-    bind_socket: Option<SyncSender<usize>>,
+    bind_socket: Option<Sender<usize>>,
     /// `JoinHandle` of the task that binds the remote socket. `Option` because it will be moved out
     /// this structure.
     #[derivative(Debug = "ignore")]

@@ -1,6 +1,6 @@
+use crossbeam::channel::Receiver;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::sync::mpsc::Receiver;
 
 use crate::block::InnerBlock;
 use crate::operator::{Operator, StreamElement};
@@ -14,7 +14,7 @@ where
     Out: Clone + Serialize + DeserializeOwned + Send + 'static,
     OperatorChain: Operator<Out> + Send + 'static,
 {
-    let (sender, receiver) = std::sync::mpsc::sync_channel(1);
+    let (sender, receiver) = crossbeam::channel::bounded(1);
     let join_handle = std::thread::spawn(move || worker(block, receiver));
     StartHandle::new(sender, join_handle)
 }

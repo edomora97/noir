@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Result};
+use crossbeam::channel::{bounded, Receiver, Sender};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs};
-use std::sync::mpsc::{sync_channel, Receiver, Sender, SyncSender};
 use std::thread::{spawn, JoinHandle};
 
 use crate::network::remote::remote_recv;
@@ -30,7 +30,7 @@ pub(crate) struct NetworkReceiver<In> {
     receiver: Receiver<In>,
     /// The sender associated with `self.receiver`.
     #[derivative(Debug = "ignore")]
-    local_sender: SyncSender<In>,
+    local_sender: Sender<In>,
 }
 
 impl<In> NetworkReceiver<In>
@@ -46,9 +46,9 @@ where
     ///   a socket on the specified address. The value sent is the number of senders that will
     ///   connect remotely to that socket. When they all connects the socket is unbound.
     /// - an handle where to wait for the socket task
-    pub fn new(coord: Coord, address: (String, u16)) -> (Self, SyncSender<usize>, JoinHandle<()>) {
-        let (sender, receiver) = sync_channel(CHANNEL_CAPACITY);
-        let (bind_socket, bind_socket_rx) = sync_channel(CHANNEL_CAPACITY);
+    pub fn new(coord: Coord, address: (String, u16)) -> (Self, Sender<usize>, JoinHandle<()>) {
+        let (sender, receiver) = bounded(CHANNEL_CAPACITY);
+        let (bind_socket, bind_socket_rx) = bounded(CHANNEL_CAPACITY);
         let local_sender = sender.clone();
         let join_handle = spawn(move || {
             NetworkReceiver::bind_remote(coord, local_sender, address, bind_socket_rx);
@@ -82,7 +82,7 @@ where
     /// connections will be awaited and served. After that the task will exit unbinding the socket.
     fn bind_remote(
         coord: Coord,
-        local_sender: SyncSender<In>,
+        local_sender: Sender<In>,
         address: (String, u16),
         bind_socket: Receiver<usize>,
     ) {
@@ -161,7 +161,7 @@ where
     ///
     /// This will receiver every message, deserialize it and send it back to the receiver using the
     /// local channel.
-    fn handle_remote_client(coord: Coord, local_sender: SyncSender<In>, mut receiver: TcpStream) {
+    fn handle_remote_client(coord: Coord, local_sender: Sender<In>, mut receiver: TcpStream) {
         let address = receiver
             .peer_addr()
             .map(|a| a.to_string())

@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
+use crossbeam::channel::Sender;
 use itertools::Itertools;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::sync::mpsc::{Sender, SyncSender};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 
@@ -37,7 +37,7 @@ pub struct ExecutionMetadata {
 /// Handle that the scheduler uses to start the computation of a block.
 pub(crate) struct StartHandle {
     /// Sender for the `ExecutionMetadata` sent to the worker.
-    starter: SyncSender<ExecutionMetadata>,
+    starter: Sender<ExecutionMetadata>,
     /// `JoinHandle` used to wait until a block has finished working.
     join_handle: JoinHandle<()>,
 }
@@ -345,7 +345,7 @@ impl Scheduler {
 }
 
 impl StartHandle {
-    pub(crate) fn new(starter: SyncSender<ExecutionMetadata>, join_handle: JoinHandle<()>) -> Self {
+    pub(crate) fn new(starter: Sender<ExecutionMetadata>, join_handle: JoinHandle<()>) -> Self {
         Self {
             starter,
             join_handle,
