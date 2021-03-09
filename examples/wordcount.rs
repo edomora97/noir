@@ -1,4 +1,8 @@
+#[macro_use]
+extern crate log;
+
 use std::env;
+use std::time::Instant;
 
 use regex::Regex;
 
@@ -14,7 +18,7 @@ async fn main() {
         .nth(1)
         .expect("Pass the dataset path as an argument");
 
-    let config = EnvironmentConfig::local(1);
+    let config = EnvironmentConfig::local(8);
     // let config = EnvironmentConfig::remote("config.yml").await.unwrap();
     let mut env = StreamEnvironment::new(config);
 
@@ -29,12 +33,16 @@ async fn main() {
         .fold(0, |count, _word| count + 1)
         .unkey();
     let result = stream.collect_vec();
+
+    let start = Instant::now();
     env.execute().await;
+    let duration = start.elapsed();
     // println!("Output: {:?}", result.get());
 
-    for line in result.get().unwrap() {
-        println!("{} {}", line.0, line.1);
-    }
+    // for line in result.get().unwrap() {
+    //     println!("{} {}", line.0, line.1);
+    // }
+    info!("Elapsed: {:?}", duration);
 }
 
 struct Tokenizer {

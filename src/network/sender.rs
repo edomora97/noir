@@ -14,7 +14,7 @@ use crate::network::remote::remote_send;
 use crate::network::{wait_start, Coord, NetworkStarter, NetworkStarterRecv};
 
 /// The capacity of the out-buffer.
-const CHANNEL_CAPACITY: usize = 10;
+const CHANNEL_CAPACITY: usize = 100;
 
 /// Maximum number of attempts to make for connecting to a remote host.
 const CONNECT_ATTEMPTS: usize = 10;
