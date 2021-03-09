@@ -1,5 +1,5 @@
-use async_std::sync::Arc;
 use atomic_refcell::AtomicRefCell;
+use std::sync::Arc;
 
 use crate::operator::Operator;
 

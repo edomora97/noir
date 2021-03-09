@@ -1,9 +1,9 @@
 use std::hash::Hash;
 
-use async_std::sync::Arc;
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use std::sync::Arc;
 
 use crate::operator::source::SourceLoader;
 use crate::operator::{Operator, StreamElement};
@@ -91,14 +91,14 @@ where
 mod tests {
     use std::str::FromStr;
 
-    use async_std::stream::from_iter;
     use itertools::Itertools;
+    use tokio::stream::from_iter;
 
     use crate::config::EnvironmentConfig;
     use crate::environment::StreamEnvironment;
     use crate::operator::source;
 
-    #[async_std::test]
+    #[tokio::test]
     async fn map_stream() {
         let mut env = StreamEnvironment::new(EnvironmentConfig::local(4));
         let source = source::StreamSource::new(from_iter(0..10u8));
@@ -114,7 +114,7 @@ mod tests {
         assert_eq!(res, expected);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn map_keyed_stream() {
         let mut env = StreamEnvironment::new(EnvironmentConfig::local(4));
         let source = source::StreamSource::new(from_iter(0..10u8));

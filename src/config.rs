@@ -1,9 +1,9 @@
 use std::fmt::{Display, Formatter};
+use std::path::Path;
 use std::path::PathBuf;
 use std::str::FromStr;
 
 use anyhow::{bail, Result};
-use async_std::path::Path;
 use serde::{Deserialize, Serialize};
 
 use crate::runner::{CONFIG_ENV_VAR, HOST_ID_ENV_VAR};
@@ -75,7 +75,7 @@ impl EnvironmentConfig {
             config
         } else {
             debug!("Reading remote config from: {}", config.as_ref().display());
-            let content = async_std::fs::read_to_string(config).await?;
+            let content = tokio::fs::read_to_string(config).await?;
             serde_yaml::from_str(&content)?
         };
 

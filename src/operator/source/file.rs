@@ -1,11 +1,11 @@
-use async_std::channel::{Receiver, Sender};
-use async_std::fs::File;
-use async_std::io::prelude::SeekExt;
-use async_std::io::{BufReader, SeekFrom};
-use async_std::path::PathBuf;
-use async_std::prelude::*;
-use async_std::task::spawn;
 use async_trait::async_trait;
+use std::path::PathBuf;
+use tokio::fs::File;
+use tokio::io::AsyncBufReadExt;
+use tokio::io::AsyncSeekExt;
+use tokio::io::{BufReader, SeekFrom};
+use tokio::sync::mpsc::{Receiver, Sender};
+use tokio::task::spawn;
 
 use crate::operator::source::{Source, SourceBatch, SourceLoader};
 use crate::operator::{Operator, StreamElement};
@@ -30,14 +30,14 @@ impl FileSource {
 }
 
 async fn source_body(
-    next_batch: Receiver<()>,
+    mut next_batch: Receiver<()>,
     next_batch_done: Sender<()>,
     mut current: usize,
     end: usize,
     mut reader: BufReader<File>,
     batch: SourceBatch<String>,
 ) {
-    while let Ok(()) = next_batch.recv().await {
+    while let Some(()) = next_batch.recv().await {
         let element = if current <= end {
             let mut line = String::new();
             match reader.read_line(&mut line).await {
@@ -70,7 +70,7 @@ impl Operator<String> for FileSource {
         let global_id = metadata.global_id;
         let num_replicas = metadata.num_replicas;
 
-        let file = File::open(&self.path)
+        let mut file = File::open(&self.path)
             .await
             .expect("FileSource: error while opening file");
         let file_size = file.metadata().await.unwrap().len() as usize;
@@ -84,12 +84,11 @@ impl Operator<String> for FileSource {
             start + range_size
         };
 
-        let mut reader = BufReader::new(file);
         // Seek reader to the first byte to be read
-        reader
-            .seek(SeekFrom::Current(start as i64))
+        file.seek(SeekFrom::Current(start as i64))
             .await
             .expect("seek file");
+        let mut reader = BufReader::new(file);
         if global_id != 0 {
             // discard first line
             let mut s = String::new();

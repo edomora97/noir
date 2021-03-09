@@ -1,17 +1,17 @@
 use std::collections::{HashMap, HashSet};
 use std::marker::PhantomData;
 
-use async_std::task::JoinHandle;
 use itertools::Itertools;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use tokio::task::JoinHandle;
 use typemap::{Key, ShareMap};
 
 use crate::config::{EnvironmentConfig, ExecutionRuntime};
 use crate::network::{Coord, NetworkMessage, NetworkReceiver, NetworkSender, NetworkStarter};
 use crate::scheduler::HostId;
 use crate::stream::BlockId;
-use async_std::channel::Sender;
+use tokio::sync::mpsc::Sender;
 
 /// This struct is used to index inside the `typemap` with the `NetworkReceiver`s.
 struct ReceiverKey<In>(PhantomData<In>);
@@ -252,7 +252,7 @@ impl NetworkTopology {
             if num_connections > 0 {
                 join_handles.push(join_handle);
             } else {
-                join_handle.await;
+                join_handle.await.unwrap();
             }
         }
         // and later start all the senders
@@ -263,7 +263,7 @@ impl NetworkTopology {
             if remote.is_remote {
                 join_handles.push(join_handle);
             } else {
-                join_handle.await;
+                join_handle.await.unwrap();
             }
         }
         join_handles

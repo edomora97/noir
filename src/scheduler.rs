@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
-use async_std::channel::Sender;
-use async_std::sync::{Arc, Mutex};
-use async_std::task::JoinHandle;
 use itertools::Itertools;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use std::sync::Arc;
+use tokio::sync::mpsc::Sender;
+use tokio::sync::Mutex;
+use tokio::task::JoinHandle;
 
 use crate::block::InnerBlock;
 use crate::config::{EnvironmentConfig, ExecutionRuntime, LocalRuntimeConfig, RemoteRuntimeConfig};

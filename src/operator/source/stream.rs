@@ -1,14 +1,13 @@
-use async_std::stream;
-use async_std::stream::StreamExt;
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use tokio::sync::mpsc::{Receiver, Sender};
+use tokio::task::spawn;
+use tokio_stream::StreamExt;
 
 use crate::operator::source::{Source, SourceBatch, SourceLoader};
 use crate::operator::{Operator, StreamElement};
 use crate::scheduler::ExecutionMetadata;
-use async_std::channel::{Receiver, Sender};
-use async_std::task::spawn;
 
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -27,7 +26,7 @@ where
 {
     pub fn new<S>(inner: S) -> Self
     where
-        S: stream::Stream<Item = Out> + Unpin + Send + 'static,
+        S: tokio_stream::Stream<Item = Out> + Unpin + Send + 'static,
     {
         let batch: SourceBatch<Out> = Default::default();
         let (source_loader, start_loading, done_loading) = SourceLoader::new();
@@ -41,15 +40,15 @@ where
 }
 
 async fn source_body<Out, S>(
-    next_batch: Receiver<()>,
+    mut next_batch: Receiver<()>,
     next_batch_done: Sender<()>,
     mut stream: S,
     batch: SourceBatch<Out>,
 ) where
-    S: stream::Stream<Item = Out> + Unpin + Send + 'static,
+    S: tokio_stream::Stream<Item = Out> + Unpin + Send + 'static,
     Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
-    while let Ok(()) = next_batch.recv().await {
+    while let Some(()) = next_batch.recv().await {
         let element = match stream.next().await {
             Some(t) => StreamElement::Item(t),
             None => StreamElement::End,

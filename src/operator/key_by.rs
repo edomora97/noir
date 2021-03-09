@@ -1,9 +1,9 @@
 use std::hash::Hash;
 
-use async_std::sync::Arc;
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use std::sync::Arc;
 
 use crate::operator::group_by::Keyer;
 use crate::operator::source::SourceLoader;
@@ -87,14 +87,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use async_std::stream::from_iter;
     use itertools::Itertools;
+    use tokio::stream::from_iter;
 
     use crate::config::EnvironmentConfig;
     use crate::environment::StreamEnvironment;
     use crate::operator::source;
 
-    #[async_std::test]
+    #[tokio::test]
     async fn key_by_stream() {
         let mut env = StreamEnvironment::new(EnvironmentConfig::local(4));
         let source = source::StreamSource::new(from_iter(0..10u8));
@@ -105,7 +105,7 @@ mod tests {
         assert_eq!(res, expected);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn key_by_stream2() {
         let mut env = StreamEnvironment::new(EnvironmentConfig::local(4));
         let source = source::StreamSource::new(from_iter(0..100u8));

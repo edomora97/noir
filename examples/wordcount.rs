@@ -10,7 +10,7 @@ use rstream::config::EnvironmentConfig;
 use rstream::environment::StreamEnvironment;
 use rstream::operator::source;
 
-#[async_std::main]
+#[tokio::main]
 async fn main() {
     env_logger::init();
 

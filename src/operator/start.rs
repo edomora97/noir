@@ -1,8 +1,8 @@
-use async_std::channel::{Receiver, Sender};
-use async_std::task::spawn;
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use tokio::sync::mpsc::{Receiver, Sender};
+use tokio::task::spawn;
 
 use crate::network::{NetworkMessage, NetworkReceiver};
 use crate::operator::source::{Source, SourceBatch, SourceLoader};
@@ -19,17 +19,17 @@ where
 }
 
 async fn source_body<Out>(
-    next_batch: Receiver<()>,
+    mut next_batch: Receiver<()>,
     next_batch_done: Sender<()>,
     metadata: ExecutionMetadata,
-    receiver: NetworkReceiver<NetworkMessage<Out>>,
+    mut receiver: NetworkReceiver<NetworkMessage<Out>>,
     batch: SourceBatch<Out>,
 ) where
     Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     let mut missing_ends = metadata.num_prev;
 
-    while let Ok(()) = next_batch.recv().await {
+    while let Some(()) = next_batch.recv().await {
         let mut buf = receiver.recv().await.unwrap();
         let last_message = buf
             .get(buf.len() - 1)

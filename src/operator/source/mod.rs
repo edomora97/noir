@@ -6,10 +6,10 @@ pub use file::*;
 pub use stream::*;
 
 use crate::operator::{Operator, StreamElement};
-use async_std::channel::{bounded, Receiver, Sender};
-use async_std::sync::Arc;
 use atomic_refcell::AtomicRefCell;
 use std::collections::VecDeque;
+use std::sync::Arc;
+use tokio::sync::mpsc::{channel, Receiver, Sender};
 
 mod file;
 mod stream;
@@ -31,8 +31,8 @@ pub struct SourceLoader {
 
 impl SourceLoader {
     pub fn new() -> (SourceLoader, Receiver<()>, Sender<()>) {
-        let (start_loading, start_loading_recv) = bounded(1);
-        let (done_loading, done_loading_recv) = bounded(1);
+        let (start_loading, start_loading_recv) = channel(1);
+        let (done_loading, done_loading_recv) = channel(1);
         (
             SourceLoader {
                 start_loading,
@@ -43,7 +43,7 @@ impl SourceLoader {
         )
     }
 
-    pub(crate) async fn load(&self) {
+    pub(crate) async fn load(&mut self) {
         self.start_loading.send(()).await.unwrap();
         self.done_loading
             .recv()

@@ -5,7 +5,8 @@ authors = ["Edoardo Morassutto <edoardo.morassutto@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-async-std = { version = "1.9", features = ["attributes", "unstable"] }
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
 async-trait = "0.1"
 
 log = "0.4"

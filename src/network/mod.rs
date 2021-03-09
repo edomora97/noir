@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display, Formatter};
 
-use async_std::channel::{Receiver, Sender};
+use tokio::sync::mpsc::{Receiver, Sender};
 
 pub(crate) use receiver::*;
 pub(crate) use sender::*;
@@ -59,9 +59,9 @@ impl Display for Coord {
 }
 
 /// Wait for the start signal, return whether the component should start working or not.
-pub(crate) async fn wait_start(receiver: NetworkStarterRecv) -> bool {
+pub(crate) async fn wait_start(mut receiver: NetworkStarterRecv) -> bool {
     match receiver.recv().await {
-        Ok(start) => start,
-        Err(_) => return false,
+        Some(start) => start,
+        None => return false,
     }
 }

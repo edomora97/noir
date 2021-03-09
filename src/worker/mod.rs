@@ -1,7 +1,7 @@
-use async_std::channel::Receiver;
-use async_std::task::spawn;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use tokio::sync::mpsc::Receiver;
+use tokio::task::spawn;
 
 use crate::block::{Batcher, InnerBlock};
 use crate::operator::{Operator, StreamElement};
@@ -16,14 +16,14 @@ where
     Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     OperatorChain: Operator<Out> + Send + 'static,
 {
-    let (sender, receiver) = async_std::channel::bounded(1);
+    let (sender, receiver) = tokio::sync::mpsc::channel(1);
     let join_handle = spawn(async move { worker(block, receiver).await });
     StartHandle::new(sender, join_handle)
 }
 
 async fn worker<In, Out, OperatorChain>(
     mut block: InnerBlock<In, Out, OperatorChain>,
-    metadata_receiver: Receiver<ExecutionMetadata>,
+    mut metadata_receiver: Receiver<ExecutionMetadata>,
 ) where
     In: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
     Out: Clone + Serialize + DeserializeOwned + Send + Sync + 'static,
@@ -37,7 +37,7 @@ async fn worker<In, Out, OperatorChain>(
         block.to_string(),
     );
     // notify the operators that we are about to start
-    let loader = block.operators.setup(metadata.clone()).await;
+    let mut loader = block.operators.setup(metadata.clone()).await;
 
     let senders = metadata.network.lock().await.get_senders(metadata.coord);
     let sender_groups = block.next_strategy.group_senders(&metadata, &senders);

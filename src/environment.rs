@@ -93,7 +93,7 @@ impl StreamEnvironment {
         let join = env.scheduler.take().unwrap().start().await;
         // wait till the computation ends
         for join_handle in join {
-            join_handle.await;
+            join_handle.await.unwrap();
         }
     }
 }
