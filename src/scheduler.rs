@@ -97,7 +97,7 @@ impl Scheduler {
         &mut self,
         block: InnerBlock<Out, OperatorChain>,
     ) where
-        OperatorChain: Operator<Out> + Send + 'static,
+        OperatorChain: Operator<Out = Out> + Send + 'static,
     {
         let block_id = block.id;
         let info = self.block_info(&block);
@@ -244,7 +244,7 @@ impl Scheduler {
         block: &InnerBlock<Out, OperatorChain>,
     ) -> SchedulerBlockInfo
     where
-        OperatorChain: Operator<Out>,
+        OperatorChain: Operator<Out = Out>,
     {
         match &self.config.runtime {
             ExecutionRuntime::Local(local) => self.local_block_info(block, local),
@@ -264,7 +264,7 @@ impl Scheduler {
         local: &LocalRuntimeConfig,
     ) -> SchedulerBlockInfo
     where
-        OperatorChain: Operator<Out>,
+        OperatorChain: Operator<Out = Out>,
     {
         let max_parallelism = block.scheduler_requirements.max_parallelism;
         let num_replicas = local.num_cores.min(max_parallelism.unwrap_or(usize::MAX));
@@ -295,7 +295,7 @@ impl Scheduler {
         remote: &RemoteRuntimeConfig,
     ) -> SchedulerBlockInfo
     where
-        OperatorChain: Operator<Out>,
+        OperatorChain: Operator<Out = Out>,
     {
         let max_parallelism = block.scheduler_requirements.max_parallelism;
         debug!("Allocating block {} on remote runtime", block.id);

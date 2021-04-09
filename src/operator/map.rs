@@ -8,18 +8,19 @@ use crate::stream::{KeyValue, KeyedStream, Stream};
 #[derivative(Debug)]
 pub struct Map<Out: Data, NewOut: Data, PreviousOperators>
 where
-    PreviousOperators: Operator<Out>,
+    PreviousOperators: Operator<Out = Out>,
 {
     prev: PreviousOperators,
     #[derivative(Debug = "ignore")]
     f: Arc<dyn Fn(Out) -> NewOut + Send + Sync>,
 }
 
-impl<Out: Data, NewOut: Data, PreviousOperators> Operator<NewOut>
-    for Map<Out, NewOut, PreviousOperators>
+impl<Out: Data, NewOut: Data, PreviousOperators> Operator for Map<Out, NewOut, PreviousOperators>
 where
-    PreviousOperators: Operator<Out> + Send,
+    PreviousOperators: Operator<Out = Out> + Send,
 {
+    type Out = NewOut;
+
     fn setup(&mut self, metadata: ExecutionMetadata) {
         self.prev.setup(metadata);
     }
@@ -40,9 +41,9 @@ where
 
 impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
-    pub fn map<NewOut: Data, F>(self, f: F) -> Stream<NewOut, impl Operator<NewOut>>
+    pub fn map<NewOut: Data, F>(self, f: F) -> Stream<NewOut, impl Operator<Out = NewOut>>
     where
         F: Fn(Out) -> NewOut + Send + Sync + 'static,
     {
@@ -55,12 +56,12 @@ where
 
 impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
 where
-    OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
+    OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
     pub fn map<NewOut: Data, F>(
         self,
         f: F,
-    ) -> KeyedStream<Key, NewOut, impl Operator<KeyValue<Key, NewOut>>>
+    ) -> KeyedStream<Key, NewOut, impl Operator<Out = KeyValue<Key, NewOut>>>
     where
         F: Fn(KeyValue<&Key, Out>) -> NewOut + Send + Sync + 'static,
     {

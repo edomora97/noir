@@ -7,7 +7,7 @@ pub(crate) fn spawn_worker<Out: Data, OperatorChain>(
     block: InnerBlock<Out, OperatorChain>,
 ) -> StartHandle
 where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
     let (sender, receiver) = BoundedChannelReceiver::new(1);
     let join_handle = std::thread::Builder::new()
@@ -21,7 +21,7 @@ fn worker<Out: Data, OperatorChain>(
     mut block: InnerBlock<Out, OperatorChain>,
     metadata_receiver: BoundedChannelReceiver<ExecutionMetadata>,
 ) where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
     let metadata = metadata_receiver.recv().unwrap();
     drop(metadata_receiver);

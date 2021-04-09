@@ -9,7 +9,7 @@ use crate::scheduler::ExecutionMetadata;
 #[derivative(Clone, Debug)]
 pub struct EndBlock<Out: Data, OperatorChain>
 where
-    OperatorChain: Operator<Out>,
+    OperatorChain: Operator<Out = Out>,
 {
     prev: OperatorChain,
     metadata: Option<ExecutionMetadata>,
@@ -22,7 +22,7 @@ where
 
 impl<Out: Data, OperatorChain> EndBlock<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out>,
+    OperatorChain: Operator<Out = Out>,
 {
     pub(crate) fn new(
         prev: OperatorChain,
@@ -40,10 +40,12 @@ where
     }
 }
 
-impl<Out: Data, OperatorChain> Operator<()> for EndBlock<Out, OperatorChain>
+impl<Out: Data, OperatorChain> Operator for EndBlock<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send,
+    OperatorChain: Operator<Out = Out> + Send,
 {
+    type Out = ();
+
     fn setup(&mut self, metadata: ExecutionMetadata) {
         self.prev.setup(metadata.clone());
 

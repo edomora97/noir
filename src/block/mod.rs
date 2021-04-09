@@ -21,7 +21,7 @@ mod next_strategy;
 #[derive(Debug, Clone)]
 pub(crate) struct InnerBlock<Out: Data, OperatorChain>
 where
-    OperatorChain: Operator<Out>,
+    OperatorChain: Operator<Out = Out>,
 {
     /// The identifier of the block inside the environment.
     pub(crate) id: BlockId,
@@ -47,7 +47,7 @@ pub(crate) struct SchedulerRequirements {
 
 impl<Out: Data, OperatorChain> InnerBlock<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out>,
+    OperatorChain: Operator<Out = Out>,
 {
     pub fn new(id: BlockId, operators: OperatorChain, batch_mode: BatchMode) -> Self {
         Self {
@@ -62,7 +62,7 @@ where
 
 impl<Out: Data, OperatorChain> Display for InnerBlock<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out>,
+    OperatorChain: Operator<Out = Out>,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.operators.to_string())

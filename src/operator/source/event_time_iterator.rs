@@ -40,11 +40,13 @@ where
     }
 }
 
-impl<Out: Data, It, WatermarkGen> Operator<Out> for EventTimeIteratorSource<Out, It, WatermarkGen>
+impl<Out: Data, It, WatermarkGen> Operator for EventTimeIteratorSource<Out, It, WatermarkGen>
 where
     It: Iterator<Item = (Out, Timestamp)> + Send + 'static,
     WatermarkGen: Fn(&Out, &Timestamp) -> Option<Timestamp>,
 {
+    type Out = Out;
+
     fn setup(&mut self, _metadata: ExecutionMetadata) {}
 
     fn next(&mut self) -> StreamElement<Out> {

@@ -3,14 +3,14 @@ use crate::stream::Stream;
 
 impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
     pub fn concat<OperatorChain2>(
         self,
         oth: Stream<Out, OperatorChain2>,
-    ) -> Stream<Out, impl Operator<Out>>
+    ) -> Stream<Out, impl Operator<Out = Out>>
     where
-        OperatorChain2: Operator<Out> + Send + 'static,
+        OperatorChain2: Operator<Out = Out> + Send + 'static,
     {
         self.add_y_connection(oth, |id1, id2| StartBlock::concat(vec![id1, id2]))
     }

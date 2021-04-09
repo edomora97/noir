@@ -24,7 +24,7 @@ pub type KeyValue<Key, Value> = (Key, Value);
 /// blocks inside of it.
 pub struct Stream<Out: Data, OperatorChain>
 where
-    OperatorChain: Operator<Out>,
+    OperatorChain: Operator<Out = Out>,
 {
     /// The last block inside the stream.
     pub(crate) block: InnerBlock<Out, OperatorChain>,
@@ -41,11 +41,11 @@ pub struct KeyedStream<Key: DataKey, Out: Data, OperatorChain>(
     pub Stream<KeyValue<Key, Out>, OperatorChain>,
 )
 where
-    OperatorChain: Operator<KeyValue<Key, Out>>;
+    OperatorChain: Operator<Out = KeyValue<Key, Out>>;
 
 pub struct WindowedStream<Key: DataKey, Out: Data, OperatorChain, WinDescr>
 where
-    OperatorChain: Operator<KeyValue<Key, Out>>,
+    OperatorChain: Operator<Out = KeyValue<Key, Out>>,
     WinDescr: WindowDescription<Key, Out>,
 {
     pub(crate) inner: KeyedStream<Key, Out, OperatorChain>,
@@ -54,7 +54,7 @@ where
 
 impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
     /// Add a new operator to the current chain inside the stream. This consumes the stream and
     /// returns a new one with the operator added.
@@ -67,7 +67,7 @@ where
         get_operator: GetOp,
     ) -> Stream<NewOut, Op>
     where
-        Op: Operator<NewOut> + 'static,
+        Op: Operator<Out = NewOut> + 'static,
         GetOp: FnOnce(OperatorChain) -> Op,
     {
         Stream {
@@ -87,7 +87,7 @@ where
     ///
     /// `get_end_operator` is used to extend the operator chain of the old block with the last
     /// operator (e.g. `operator::EndBlock`, `operator::GroupByEndOperator`). The end operator must
-    /// be an `Operator<()>`.
+    /// be an `Operator<Out = ()>`.
     ///
     /// The new block is initialized with a `StartBlock`.
     pub(crate) fn add_block<GetEndOp, Op>(
@@ -96,7 +96,7 @@ where
         next_strategy: NextStrategy<Out>,
     ) -> Stream<Out, StartBlock<Out>>
     where
-        Op: Operator<()> + Send + 'static,
+        Op: Operator<Out = ()> + Send + 'static,
         GetEndOp: FnOnce(OperatorChain, NextStrategy<Out>, BatchMode) -> Op,
     {
         let batch_mode = self.block.batch_mode;
@@ -133,9 +133,9 @@ where
     ) -> Stream<NewOut, StartOperator>
     where
         Out2: Data,
-        OperatorChain2: Operator<Out2> + Send + 'static,
+        OperatorChain2: Operator<Out = Out2> + Send + 'static,
         NewOut: Data,
-        StartOperator: Operator<NewOut>,
+        StartOperator: Operator<Out = NewOut>,
         GetStartOp: Fn(BlockId, BlockId) -> StartOperator,
     {
         let batch_mode = self.block.batch_mode;
@@ -211,14 +211,14 @@ where
 
 impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
 where
-    OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
+    OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
     pub(crate) fn add_operator<NewOut: Data, Op, GetOp>(
         self,
         get_operator: GetOp,
     ) -> KeyedStream<Key, NewOut, Op>
     where
-        Op: Operator<KeyValue<Key, NewOut>> + 'static,
+        Op: Operator<Out = KeyValue<Key, NewOut>> + 'static,
         GetOp: FnOnce(OperatorChain) -> Op,
     {
         KeyedStream(self.0.add_operator(get_operator))

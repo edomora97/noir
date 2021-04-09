@@ -9,17 +9,19 @@ use crate::stream::{KeyValue, KeyedStream, Stream};
 #[derivative(Debug)]
 pub struct ForEachSink<Out: Data, PreviousOperators>
 where
-    PreviousOperators: Operator<Out>,
+    PreviousOperators: Operator<Out = Out>,
 {
     prev: PreviousOperators,
     #[derivative(Debug = "ignore")]
     f: Arc<dyn Fn(Out) + Send + Sync>,
 }
 
-impl<Out: Data, PreviousOperators> Operator<()> for ForEachSink<Out, PreviousOperators>
+impl<Out: Data, PreviousOperators> Operator for ForEachSink<Out, PreviousOperators>
 where
-    PreviousOperators: Operator<Out> + Send,
+    PreviousOperators: Operator<Out = Out> + Send,
 {
+    type Out = ();
+
     fn setup(&mut self, metadata: ExecutionMetadata) {
         self.prev.setup(metadata);
     }
@@ -42,13 +44,13 @@ where
 }
 
 impl<Out: Data, PreviousOperators> Sink for ForEachSink<Out, PreviousOperators> where
-    PreviousOperators: Operator<Out> + Send
+    PreviousOperators: Operator<Out = Out> + Send
 {
 }
 
 impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
     pub fn for_each<F: Fn(Out) + Send + Sync + 'static>(self, f: F) {
         self.add_operator(|prev| ForEachSink {
@@ -61,7 +63,7 @@ where
 
 impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
 where
-    OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
+    OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
     pub fn for_each<F: Fn(Key, Out) + Send + Sync + 'static>(self, f: F) {
         self.0.for_each(move |(key, out)| f(key, out))

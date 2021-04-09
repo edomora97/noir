@@ -4,9 +4,9 @@ use crate::stream::Stream;
 
 impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
-    pub fn split(self, splits: usize) -> Vec<Stream<Out, impl Operator<Out>>> {
+    pub fn split(self, splits: usize) -> Vec<Stream<Out, impl Operator<Out = Out>>> {
         // This is needed to maintain the same parallelism of the split block
         let scheduler_requirements = self.block.scheduler_requirements.clone();
         let mut new_stream = self.add_block(EndBlock::new, NextStrategy::OnlyOne);

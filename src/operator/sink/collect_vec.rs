@@ -7,17 +7,19 @@ use crate::stream::Stream;
 #[derive(Debug)]
 pub struct CollectVecSink<Out: Data, PreviousOperators>
 where
-    PreviousOperators: Operator<Out>,
+    PreviousOperators: Operator<Out = Out>,
 {
     prev: PreviousOperators,
     result: Option<Vec<Out>>,
     output: StreamOutputRef<Vec<Out>>,
 }
 
-impl<Out: Data, PreviousOperators> Operator<()> for CollectVecSink<Out, PreviousOperators>
+impl<Out: Data, PreviousOperators> Operator for CollectVecSink<Out, PreviousOperators>
 where
-    PreviousOperators: Operator<Out> + Send,
+    PreviousOperators: Operator<Out = Out> + Send,
 {
+    type Out = ();
+
     fn setup(&mut self, metadata: ExecutionMetadata) {
         self.prev.setup(metadata);
     }
@@ -48,13 +50,13 @@ where
 }
 
 impl<Out: Data, PreviousOperators> Sink for CollectVecSink<Out, PreviousOperators> where
-    PreviousOperators: Operator<Out> + Send
+    PreviousOperators: Operator<Out = Out> + Send
 {
 }
 
 impl<Out: Data, PreviousOperators> Clone for CollectVecSink<Out, PreviousOperators>
 where
-    PreviousOperators: Operator<Out> + Send,
+    PreviousOperators: Operator<Out = Out> + Send,
 {
     fn clone(&self) -> Self {
         panic!("CollectVecSink cannot be cloned, max_parallelism should be 1");
@@ -63,7 +65,7 @@ where
 
 impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
     pub fn collect_vec(self) -> StreamOutput<Vec<Out>> {
         let output = StreamOutputRef::default();

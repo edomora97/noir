@@ -34,7 +34,7 @@ impl<Out> PartialEq for HeapElement<Out> {
 #[derive(Clone)]
 pub(crate) struct Reorder<Out: Data, PreviousOperators>
 where
-    PreviousOperators: Operator<Out>,
+    PreviousOperators: Operator<Out = Out>,
 {
     buffer: BinaryHeap<HeapElement<Out>>,
     last_watermark: Option<Timestamp>,
@@ -44,7 +44,7 @@ where
 
 impl<Out: Data, PreviousOperators> Reorder<Out, PreviousOperators>
 where
-    PreviousOperators: Operator<Out>,
+    PreviousOperators: Operator<Out = Out>,
 {
     pub(crate) fn new(prev: PreviousOperators) -> Self {
         Self {
@@ -56,10 +56,12 @@ where
     }
 }
 
-impl<Out: Data, PreviousOperators> Operator<Out> for Reorder<Out, PreviousOperators>
+impl<Out: Data, PreviousOperators> Operator for Reorder<Out, PreviousOperators>
 where
-    PreviousOperators: Operator<Out>,
+    PreviousOperators: Operator<Out = Out>,
 {
+    type Out = Out;
+
     fn setup(&mut self, metadata: ExecutionMetadata) {
         self.prev.setup(metadata);
     }
@@ -130,7 +132,9 @@ mod tests {
         }
     }
 
-    impl<Out: Data> Operator<Out> for FakeOperator<Out> {
+    impl<Out: Data> Operator for FakeOperator<Out> {
+        type Out = Out;
+
         fn setup(&mut self, _metadata: ExecutionMetadata) {}
 
         fn next(&mut self) -> StreamElement<Out> {
@@ -138,7 +142,7 @@ mod tests {
         }
 
         fn to_string(&self) -> String {
-            format!("FakeOperator<{}>", std::any::type_name::<Out>())
+            format!("FakeOperator<Out = {}>", std::any::type_name::<Out>())
         }
     }
 

@@ -8,7 +8,7 @@ use std::sync::Arc;
 #[derivative(Debug)]
 pub struct KeyBy<Key: DataKey, Out: Data, OperatorChain>
 where
-    OperatorChain: Operator<Out>,
+    OperatorChain: Operator<Out = Out>,
 {
     prev: OperatorChain,
     #[derivative(Debug = "ignore")]
@@ -17,18 +17,19 @@ where
 
 impl<Key: DataKey, Out: Data, OperatorChain> KeyBy<Key, Out, OperatorChain>
 where
-    OperatorChain: Operator<Out>,
+    OperatorChain: Operator<Out = Out>,
 {
     pub fn new(prev: OperatorChain, keyer: Keyer<Key, Out>) -> Self {
         Self { prev, keyer }
     }
 }
 
-impl<Key: DataKey, Out: Data, OperatorChain> Operator<KeyValue<Key, Out>>
-    for KeyBy<Key, Out, OperatorChain>
+impl<Key: DataKey, Out: Data, OperatorChain> Operator for KeyBy<Key, Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send,
+    OperatorChain: Operator<Out = Out> + Send,
 {
+    type Out = KeyValue<Key, Out>;
+
     fn setup(&mut self, metadata: ExecutionMetadata) {
         self.prev.setup(metadata);
     }
@@ -56,12 +57,12 @@ where
 
 impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
     pub fn key_by<Key: DataKey, Keyer>(
         self,
         keyer: Keyer,
-    ) -> KeyedStream<Key, Out, impl Operator<KeyValue<Key, Out>>>
+    ) -> KeyedStream<Key, Out, impl Operator<Out = KeyValue<Key, Out>>>
     where
         Keyer: Fn(&Out) -> Key + Send + Sync + 'static,
     {

@@ -153,12 +153,12 @@ impl<Key: DataKey, Out: Data, WindowDescr: WindowDescription<Key, Out>>
 
 impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
 where
-    OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
+    OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
     pub fn window<WinDescr: WindowDescription<Key, Out>>(
         self,
         descr: WinDescr,
-    ) -> WindowedStream<Key, Out, impl Operator<KeyValue<Key, Out>>, WinDescr> {
+    ) -> WindowedStream<Key, Out, impl Operator<Out = KeyValue<Key, Out>>, WinDescr> {
         WindowedStream {
             inner: self.add_operator(Reorder::new),
             descr,

@@ -8,7 +8,7 @@ use crate::operator::Operator;
 mod collect_vec;
 mod for_each;
 
-pub trait Sink: Operator<()> {}
+pub trait Sink: Operator<Out = ()> {}
 
 pub type StreamOutputRef<Out> = Arc<Mutex<Option<Out>>>;
 

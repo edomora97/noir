@@ -25,7 +25,9 @@ impl<Out1: Data, Out2: Data> Zip<Out1, Out2> {
     }
 }
 
-impl<Out1: Data, Out2: Data> Operator<(Out1, Out2)> for Zip<Out1, Out2> {
+impl<Out1: Data, Out2: Data> Operator for Zip<Out1, Out2> {
+    type Out = (Out1, Out2);
+
     fn setup(&mut self, metadata: ExecutionMetadata) {
         self.prev1.setup(metadata.clone());
         self.prev2.setup(metadata);
@@ -89,14 +91,14 @@ impl<Out1: Data, Out2: Data> Operator<(Out1, Out2)> for Zip<Out1, Out2> {
 
 impl<Out1: Data, OperatorChain1> Stream<Out1, OperatorChain1>
 where
-    OperatorChain1: Operator<Out1> + Send + 'static,
+    OperatorChain1: Operator<Out = Out1> + Send + 'static,
 {
     pub fn zip<Out2: Data, OperatorChain2>(
         self,
         oth: Stream<Out2, OperatorChain2>,
-    ) -> Stream<(Out1, Out2), impl Operator<(Out1, Out2)>>
+    ) -> Stream<(Out1, Out2), impl Operator<Out = (Out1, Out2)>>
     where
-        OperatorChain2: Operator<Out2> + Send + 'static,
+        OperatorChain2: Operator<Out = Out2> + Send + 'static,
     {
         self.add_y_connection(oth, Zip::new)
     }

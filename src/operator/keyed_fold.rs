@@ -13,7 +13,7 @@ use std::hash::Hasher;
 #[derivative(Debug)]
 pub struct KeyedFold<Key: DataKey, Out: Data, NewOut: Data, PreviousOperators>
 where
-    PreviousOperators: Operator<KeyValue<Key, Out>>,
+    PreviousOperators: Operator<Out = KeyValue<Key, Out>>,
 {
     prev: PreviousOperators,
     #[derivative(Debug = "ignore")]
@@ -25,8 +25,12 @@ where
     received_end: bool,
 }
 
-impl<Key: DataKey, Out: Data, NewOut: Data, PreviousOperators: Operator<KeyValue<Key, Out>>>
-    KeyedFold<Key, Out, NewOut, PreviousOperators>
+impl<
+        Key: DataKey,
+        Out: Data,
+        NewOut: Data,
+        PreviousOperators: Operator<Out = KeyValue<Key, Out>>,
+    > KeyedFold<Key, Out, NewOut, PreviousOperators>
 {
     fn new<F>(prev: PreviousOperators, init: NewOut, fold: F) -> Self
     where
@@ -44,11 +48,13 @@ impl<Key: DataKey, Out: Data, NewOut: Data, PreviousOperators: Operator<KeyValue
     }
 }
 
-impl<Key: DataKey, Out: Data, NewOut: Data, PreviousOperators> Operator<KeyValue<Key, NewOut>>
+impl<Key: DataKey, Out: Data, NewOut: Data, PreviousOperators> Operator
     for KeyedFold<Key, Out, NewOut, PreviousOperators>
 where
-    PreviousOperators: Operator<KeyValue<Key, Out>> + Send,
+    PreviousOperators: Operator<Out = KeyValue<Key, Out>> + Send,
 {
+    type Out = KeyValue<Key, NewOut>;
+
     fn setup(&mut self, metadata: ExecutionMetadata) {
         self.prev.setup(metadata);
     }
@@ -112,7 +118,7 @@ where
 
 impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
     pub fn group_by_fold<Key: DataKey, NewOut: Data, Keyer, Local, Global>(
         self,
@@ -120,7 +126,7 @@ where
         init: NewOut,
         local: Local,
         global: Global,
-    ) -> KeyedStream<Key, NewOut, impl Operator<KeyValue<Key, NewOut>>>
+    ) -> KeyedStream<Key, NewOut, impl Operator<Out = KeyValue<Key, NewOut>>>
     where
         Keyer: Fn(&Out) -> Key + Send + Sync + 'static,
         Local: Fn(NewOut, Out) -> NewOut + Send + Sync + 'static,
@@ -152,13 +158,13 @@ where
 
 impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
 where
-    OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
+    OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
     pub fn fold<NewOut: Data, F>(
         self,
         init: NewOut,
         f: F,
-    ) -> KeyedStream<Key, NewOut, impl Operator<KeyValue<Key, NewOut>>>
+    ) -> KeyedStream<Key, NewOut, impl Operator<Out = KeyValue<Key, NewOut>>>
     where
         F: Fn(NewOut, Out) -> NewOut + Send + Sync + 'static,
     {

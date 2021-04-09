@@ -44,7 +44,9 @@ impl<Out: Data> StartBlock<Out> {
     }
 }
 
-impl<Out: Data> Operator<Out> for StartBlock<Out> {
+impl<Out: Data> Operator for StartBlock<Out> {
+    type Out = Out;
+
     fn setup(&mut self, metadata: ExecutionMetadata) {
         for &prev_block_id in &self.prev_block_ids {
             let mut network = metadata.network.lock().unwrap();

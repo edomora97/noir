@@ -4,13 +4,13 @@ use std::sync::Arc;
 
 impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
     pub fn group_by_reduce<Key: DataKey, Keyer, F>(
         self,
         keyer: Keyer,
         f: F,
-    ) -> KeyedStream<Key, Out, impl Operator<KeyValue<Key, Out>>>
+    ) -> KeyedStream<Key, Out, impl Operator<Out = KeyValue<Key, Out>>>
     where
         Keyer: Fn(&Out) -> Key + Send + Sync + 'static,
         F: Fn(Out, Out) -> Out + Send + Sync + 'static,
@@ -40,9 +40,9 @@ where
 
 impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
 where
-    OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
+    OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
-    pub fn reduce<F>(self, f: F) -> KeyedStream<Key, Out, impl Operator<KeyValue<Key, Out>>>
+    pub fn reduce<F>(self, f: F) -> KeyedStream<Key, Out, impl Operator<Out = KeyValue<Key, Out>>>
     where
         F: Fn(Out, Out) -> Out + Send + Sync + 'static,
     {

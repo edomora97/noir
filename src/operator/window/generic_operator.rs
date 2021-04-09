@@ -18,7 +18,7 @@ pub(crate) struct GenericWindowOperator<
 > where
     ProcessFunc: Fn(&Window<Key, Out>) -> NewOut + Clone,
     WindowDescr: WindowDescription<Key, Out> + Clone,
-    OperatorChain: Operator<KeyValue<Key, Out>>,
+    OperatorChain: Operator<Out = KeyValue<Key, Out>>,
 {
     name: String,
     manager: KeyedWindowManager<Key, Out, WindowDescr>,
@@ -32,7 +32,7 @@ impl<Key: DataKey, Out: Data, NewOut: Data, F, WindowDescr, OperatorChain>
 where
     F: Fn(&Window<Key, Out>) -> NewOut + Clone,
     WindowDescr: WindowDescription<Key, Out> + Clone,
-    OperatorChain: Operator<KeyValue<Key, Out>>,
+    OperatorChain: Operator<Out = KeyValue<Key, Out>>,
 {
     pub(crate) fn new<S: Into<String>>(
         name: S,
@@ -50,14 +50,15 @@ where
     }
 }
 
-impl<Key: DataKey, Out: Data, NewOut: Data, F, WindowDescr, OperatorChain>
-    Operator<KeyValue<Key, NewOut>>
+impl<Key: DataKey, Out: Data, NewOut: Data, F, WindowDescr, OperatorChain> Operator
     for GenericWindowOperator<Key, Out, NewOut, F, WindowDescr, OperatorChain>
 where
     F: Fn(&Window<Key, Out>) -> NewOut + Clone,
     WindowDescr: WindowDescription<Key, Out> + Clone,
-    OperatorChain: Operator<KeyValue<Key, Out>>,
+    OperatorChain: Operator<Out = KeyValue<Key, Out>>,
 {
+    type Out = KeyValue<Key, NewOut>;
+
     fn setup(&mut self, metadata: ExecutionMetadata) {
         self.prev.setup(metadata);
     }

@@ -4,9 +4,9 @@ use std::sync::Arc;
 
 impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
-    pub fn reduce<F>(self, f: F) -> Stream<Out, impl Operator<Out>>
+    pub fn reduce<F>(self, f: F) -> Stream<Out, impl Operator<Out = Out>>
     where
         F: Fn(Out, Out) -> Out + Send + Sync + 'static,
     {
@@ -17,7 +17,7 @@ where
         .map(|value| value.unwrap())
     }
 
-    pub fn reduce_assoc<F>(self, f: F) -> Stream<Out, impl Operator<Out>>
+    pub fn reduce_assoc<F>(self, f: F) -> Stream<Out, impl Operator<Out = Out>>
     where
         F: Fn(Out, Out) -> Out + Send + Sync + 'static,
     {

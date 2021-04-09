@@ -9,7 +9,7 @@ use crate::stream::Stream;
 #[derivative(Debug)]
 pub struct Fold<Out: Data, NewOut: Data, PreviousOperators>
 where
-    PreviousOperators: Operator<Out>,
+    PreviousOperators: Operator<Out = Out>,
 {
     prev: PreviousOperators,
     #[derivative(Debug = "ignore")]
@@ -21,7 +21,7 @@ where
     received_end: bool,
 }
 
-impl<Out: Data, NewOut: Data, PreviousOperators: Operator<Out>>
+impl<Out: Data, NewOut: Data, PreviousOperators: Operator<Out = Out>>
     Fold<Out, NewOut, PreviousOperators>
 {
     fn new<F>(prev: PreviousOperators, init: NewOut, fold: F) -> Self
@@ -40,11 +40,12 @@ impl<Out: Data, NewOut: Data, PreviousOperators: Operator<Out>>
     }
 }
 
-impl<Out: Data, NewOut: Data, PreviousOperators> Operator<NewOut>
-    for Fold<Out, NewOut, PreviousOperators>
+impl<Out: Data, NewOut: Data, PreviousOperators> Operator for Fold<Out, NewOut, PreviousOperators>
 where
-    PreviousOperators: Operator<Out> + Send,
+    PreviousOperators: Operator<Out = Out> + Send,
 {
+    type Out = NewOut;
+
     fn setup(&mut self, metadata: ExecutionMetadata) {
         self.prev.setup(metadata);
     }
@@ -103,9 +104,13 @@ where
 
 impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
 where
-    OperatorChain: Operator<Out> + Send + 'static,
+    OperatorChain: Operator<Out = Out> + Send + 'static,
 {
-    pub fn fold<NewOut: Data, F>(self, init: NewOut, f: F) -> Stream<NewOut, impl Operator<NewOut>>
+    pub fn fold<NewOut: Data, F>(
+        self,
+        init: NewOut,
+        f: F,
+    ) -> Stream<NewOut, impl Operator<Out = NewOut>>
     where
         F: Fn(NewOut, Out) -> NewOut + Send + Sync + 'static,
     {
@@ -120,7 +125,7 @@ where
         init: NewOut,
         local: Local,
         global: Global,
-    ) -> Stream<NewOut, impl Operator<NewOut>>
+    ) -> Stream<NewOut, impl Operator<Out = NewOut>>
     where
         Local: Fn(NewOut, Out) -> NewOut + Send + Sync + 'static,
         Global: Fn(NewOut, NewOut) -> NewOut + Send + Sync + 'static,

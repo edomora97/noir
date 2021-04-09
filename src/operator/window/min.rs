@@ -6,9 +6,9 @@ impl<Key: DataKey, Out: Data + Ord, WindowDescr, OperatorChain>
     WindowedStream<Key, Out, OperatorChain, WindowDescr>
 where
     WindowDescr: WindowDescription<Key, Out> + Clone + 'static,
-    OperatorChain: Operator<KeyValue<Key, Out>> + Send + 'static,
+    OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
-    pub fn min(self) -> KeyedStream<Key, Out, impl Operator<KeyValue<Key, Out>>> {
+    pub fn min(self) -> KeyedStream<Key, Out, impl Operator<Out = KeyValue<Key, Out>>> {
         let stream = self.inner;
         let descr = self.descr;
 

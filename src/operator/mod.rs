@@ -75,14 +75,16 @@ pub enum StreamElement<Out> {
 /// An operator represents a unit of computation. It's always included inside a chain of operators,
 /// inside a block.
 ///
-/// Each operator implements the `Operator<Out>` trait, it produced a stream of `Out` elements.
+/// Each operator implements the `Operator<Out = Out>` trait, it produced a stream of `Out` elements.
 ///
 /// An `Operator` must be Clone since it is part of a single chain when it's built, but it has to
 /// be cloned to spawn the replicas of the block.
 ///
 /// This trait has some `async` function, due to a limitation of rust `async_trait` must be used.
+pub trait Operator: Clone {
+    /// The type of the items that come out of this operator.
+    type Out: Data;
 
-pub trait Operator<Out: Data>: Clone {
     /// Setup the operator chain. This is called before any call to `next` and it's used to
     /// initialize the operator. When it's called the operator has already been cloned and it will
     /// never be cloned again. Therefore it's safe to store replica-specific metadata inside of it.
@@ -92,7 +94,7 @@ pub trait Operator<Out: Data>: Clone {
     fn setup(&mut self, metadata: ExecutionMetadata);
 
     /// Take a value from the previous operator, process it and return it.
-    fn next(&mut self) -> StreamElement<Out>;
+    fn next(&mut self) -> StreamElement<Self::Out>;
 
     /// A string representation of the operator and its predecessors.
     fn to_string(&self) -> String;
