@@ -2,18 +2,18 @@ use crate::operator::{Data, DataKey, Operator};
 use crate::stream::{KeyValue, KeyedStream, Stream};
 use std::sync::Arc;
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
     pub fn group_by_reduce<Key: DataKey, Keyer, F>(
         self,
         keyer: Keyer,
         f: F,
-    ) -> KeyedStream<Key, Out, impl Operator<Out = KeyValue<Key, Out>>>
+    ) -> KeyedStream<Key, OperatorChain::Out, impl Operator<Out = KeyValue<Key, OperatorChain::Out>>>
     where
-        Keyer: Fn(&Out) -> Key + Send + Sync + 'static,
-        F: Fn(Out, Out) -> Out + Send + Sync + 'static,
+        Keyer: Fn(&OperatorChain::Out) -> Key + Send + Sync + 'static,
+        F: Fn(OperatorChain::Out, OperatorChain::Out) -> OperatorChain::Out + Send + Sync + 'static,
     {
         // FIXME: remove Arc if reduce function will be Clone
         let f = Arc::new(f);

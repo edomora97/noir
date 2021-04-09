@@ -4,22 +4,22 @@ use std::hash::Hasher;
 use std::sync::Arc;
 
 use crate::block::NextStrategy;
-use crate::operator::{Data, DataKey, EndBlock};
+use crate::operator::{DataKey, EndBlock};
 use crate::operator::{KeyBy, Operator};
 use crate::stream::{KeyValue, KeyedStream, Stream};
 
 pub type Keyer<Key, Out> = Arc<dyn Fn(&Out) -> Key + Send + Sync>;
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
     pub fn group_by<Key: DataKey, Keyer>(
         self,
         keyer: Keyer,
-    ) -> KeyedStream<Key, Out, impl Operator<Out = KeyValue<Key, Out>>>
+    ) -> KeyedStream<Key, OperatorChain::Out, impl Operator<Out = KeyValue<Key, OperatorChain::Out>>>
     where
-        Keyer: Fn(&Out) -> Key + Send + Sync + 'static,
+        Keyer: Fn(&OperatorChain::Out) -> Key + Send + Sync + 'static,
     {
         let keyer = Arc::new(keyer);
         let keyer2 = keyer.clone();

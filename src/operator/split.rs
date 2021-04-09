@@ -1,12 +1,12 @@
 use crate::block::NextStrategy;
-use crate::operator::{Data, EndBlock, Operator};
+use crate::operator::{EndBlock, Operator};
 use crate::stream::Stream;
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
-    pub fn split(self, splits: usize) -> Vec<Stream<Out, impl Operator<Out = Out>>> {
+    pub fn split(self, splits: usize) -> Vec<Stream<impl Operator<Out = OperatorChain::Out>>> {
         // This is needed to maintain the same parallelism of the split block
         let scheduler_requirements = self.block.scheduler_requirements.clone();
         let mut new_stream = self.add_block(EndBlock::new, NextStrategy::OnlyOne);

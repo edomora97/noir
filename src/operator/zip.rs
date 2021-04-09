@@ -89,16 +89,16 @@ impl<Out1: Data, Out2: Data> Operator for Zip<Out1, Out2> {
     }
 }
 
-impl<Out1: Data, OperatorChain1> Stream<Out1, OperatorChain1>
+impl<OperatorChain1> Stream<OperatorChain1>
 where
-    OperatorChain1: Operator<Out = Out1> + Send + 'static,
+    OperatorChain1: Operator + Send + 'static,
 {
-    pub fn zip<Out2: Data, OperatorChain2>(
+    pub fn zip<OperatorChain2>(
         self,
-        oth: Stream<Out2, OperatorChain2>,
-    ) -> Stream<(Out1, Out2), impl Operator<Out = (Out1, Out2)>>
+        oth: Stream<OperatorChain2>,
+    ) -> Stream<impl Operator<Out = (OperatorChain1::Out, OperatorChain2::Out)>>
     where
-        OperatorChain2: Operator<Out = Out2> + Send + 'static,
+        OperatorChain2: Operator + Send + 'static,
     {
         self.add_y_connection(oth, Zip::new)
     }

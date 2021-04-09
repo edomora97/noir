@@ -10,10 +10,10 @@ use crate::stream::{KeyValue, KeyedStream, Stream};
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
-pub struct Flatten<Out: Data, IterOut, NewOut: Data, PreviousOperators>
+pub struct Flatten<IterOut, NewOut: Data, PreviousOperators>
 where
     IterOut: Iterator<Item = NewOut> + Clone + Send + 'static,
-    PreviousOperators: Operator<Out = Out>,
+    PreviousOperators: Operator,
 {
     prev: PreviousOperators,
     // used to store elements that have not been returned by next() yet
@@ -22,14 +22,14 @@ where
     // This is used to make `Flatten` behave differently when applied to `Stream` or `KeyedStream`
     // Takes `Out` as input, returns an `Iterator` with items of type `NewOut`
     #[derivative(Debug = "ignore")]
-    make_iter: Arc<dyn Fn(Out) -> IterOut + Send + Sync>,
+    make_iter: Arc<dyn Fn(PreviousOperators::Out) -> IterOut + Send + Sync>,
 }
 
-impl<Out: Data, IterOut, NewOut: Data, PreviousOperators> Operator
-    for Flatten<Out, IterOut, NewOut, PreviousOperators>
+impl<IterOut, NewOut: Data, PreviousOperators> Operator
+    for Flatten<IterOut, NewOut, PreviousOperators>
 where
     IterOut: Iterator<Item = NewOut> + Clone + Send + 'static,
-    PreviousOperators: Operator<Out = Out> + Send,
+    PreviousOperators: Operator + Send,
 {
     type Out = NewOut;
 
@@ -61,19 +61,19 @@ where
         format!(
             "{} -> Flatten<{} -> {}>",
             self.prev.to_string(),
-            std::any::type_name::<Out>(),
+            std::any::type_name::<PreviousOperators::Out>(),
             std::any::type_name::<NewOut>()
         )
     }
 }
 
-impl<Out: Data, OperatorChain, NewOut: Data> Stream<Out, OperatorChain>
+impl<OperatorChain, NewOut: Data> Stream<OperatorChain>
 where
-    Out: IntoIterator<Item = NewOut>,
-    <Out as IntoIterator>::IntoIter: Clone + Send + 'static,
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain::Out: IntoIterator<Item = NewOut>,
+    <OperatorChain::Out as IntoIterator>::IntoIter: Clone + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
-    pub fn flatten(self) -> Stream<NewOut, impl Operator<Out = NewOut>> {
+    pub fn flatten(self) -> Stream<impl Operator<Out = NewOut>> {
         self.add_operator(|prev| Flatten {
             prev,
             buffer: Default::default(),
@@ -83,20 +83,20 @@ where
     }
 }
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
     // FIXME: MapOut does not really need to be Data, for example the normal iterators are not
     //        serializable
     pub fn flat_map<MapOut: Data, NewOut: Data, F>(
         self,
         f: F,
-    ) -> Stream<NewOut, impl Operator<Out = NewOut>>
+    ) -> Stream<impl Operator<Out = NewOut>>
     where
         MapOut: IntoIterator<Item = NewOut>,
         <MapOut as IntoIterator>::IntoIter: Clone + Send + 'static,
-        F: Fn(Out) -> MapOut + Send + Sync + 'static,
+        F: Fn(OperatorChain::Out) -> MapOut + Send + Sync + 'static,
     {
         self.map(f).flatten()
     }

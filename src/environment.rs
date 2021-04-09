@@ -45,7 +45,7 @@ impl StreamEnvironment {
     }
 
     /// Construct a new stream bound to this environment starting with the specified source.
-    pub fn stream<Out: Data, S>(&mut self, source: S) -> Stream<Out, S>
+    pub fn stream<Out: Data, S>(&mut self, source: S) -> Stream<S>
     where
         S: Source<Out> + Send + 'static,
     {

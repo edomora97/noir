@@ -7,18 +7,18 @@ use crate::stream::{KeyValue, KeyedStream, Stream};
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
-pub struct ForEachSink<Out: Data, PreviousOperators>
+pub struct ForEachSink<PreviousOperators>
 where
-    PreviousOperators: Operator<Out = Out>,
+    PreviousOperators: Operator,
 {
     prev: PreviousOperators,
     #[derivative(Debug = "ignore")]
-    f: Arc<dyn Fn(Out) + Send + Sync>,
+    f: Arc<dyn Fn(PreviousOperators::Out) + Send + Sync>,
 }
 
-impl<Out: Data, PreviousOperators> Operator for ForEachSink<Out, PreviousOperators>
+impl<PreviousOperators> Operator for ForEachSink<PreviousOperators>
 where
-    PreviousOperators: Operator<Out = Out> + Send,
+    PreviousOperators: Operator + Send,
 {
     type Out = ();
 
@@ -43,16 +43,16 @@ where
     }
 }
 
-impl<Out: Data, PreviousOperators> Sink for ForEachSink<Out, PreviousOperators> where
-    PreviousOperators: Operator<Out = Out> + Send
+impl<PreviousOperators> Sink for ForEachSink<PreviousOperators> where
+    PreviousOperators: Operator + Send
 {
 }
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
-    pub fn for_each<F: Fn(Out) + Send + Sync + 'static>(self, f: F) {
+    pub fn for_each<F: Fn(OperatorChain::Out) + Send + Sync + 'static>(self, f: F) {
         self.add_operator(|prev| ForEachSink {
             prev,
             f: Arc::new(f),

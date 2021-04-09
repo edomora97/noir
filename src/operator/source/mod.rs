@@ -8,6 +8,6 @@ mod event_time_iterator;
 mod file;
 mod iterator;
 
-pub trait Source<Out: Data>: Operator<Out = Out> {
+pub trait Source<Out: Data>: Operator {
     fn get_max_parallelism(&self) -> Option<usize>;
 }

@@ -1,4 +1,4 @@
-use crate::operator::{Data, DataKey, Keyer};
+use crate::operator::{DataKey, Keyer};
 use crate::operator::{Operator, StreamElement};
 use crate::scheduler::ExecutionMetadata;
 use crate::stream::{KeyValue, KeyedStream, Stream};
@@ -6,35 +6,35 @@ use std::sync::Arc;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
-pub struct KeyBy<Key: DataKey, Out: Data, OperatorChain>
+pub struct KeyBy<Key: DataKey, OperatorChain>
 where
-    OperatorChain: Operator<Out = Out>,
+    OperatorChain: Operator,
 {
     prev: OperatorChain,
     #[derivative(Debug = "ignore")]
-    keyer: Keyer<Key, Out>,
+    keyer: Keyer<Key, OperatorChain::Out>,
 }
 
-impl<Key: DataKey, Out: Data, OperatorChain> KeyBy<Key, Out, OperatorChain>
+impl<Key: DataKey, OperatorChain> KeyBy<Key, OperatorChain>
 where
-    OperatorChain: Operator<Out = Out>,
+    OperatorChain: Operator,
 {
-    pub fn new(prev: OperatorChain, keyer: Keyer<Key, Out>) -> Self {
+    pub fn new(prev: OperatorChain, keyer: Keyer<Key, OperatorChain::Out>) -> Self {
         Self { prev, keyer }
     }
 }
 
-impl<Key: DataKey, Out: Data, OperatorChain> Operator for KeyBy<Key, Out, OperatorChain>
+impl<Key: DataKey, OperatorChain> Operator for KeyBy<Key, OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send,
+    OperatorChain: Operator + Send,
 {
-    type Out = KeyValue<Key, Out>;
+    type Out = KeyValue<Key, OperatorChain::Out>;
 
     fn setup(&mut self, metadata: ExecutionMetadata) {
         self.prev.setup(metadata);
     }
 
-    fn next(&mut self) -> StreamElement<KeyValue<Key, Out>> {
+    fn next(&mut self) -> StreamElement<KeyValue<Key, OperatorChain::Out>> {
         match self.prev.next() {
             StreamElement::Item(t) => StreamElement::Item(((self.keyer)(&t), t)),
             StreamElement::Timestamped(t, ts) => {
@@ -55,16 +55,16 @@ where
     }
 }
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
     pub fn key_by<Key: DataKey, Keyer>(
         self,
         keyer: Keyer,
-    ) -> KeyedStream<Key, Out, impl Operator<Out = KeyValue<Key, Out>>>
+    ) -> KeyedStream<Key, OperatorChain::Out, impl Operator<Out = KeyValue<Key, OperatorChain::Out>>>
     where
-        Keyer: Fn(&Out) -> Key + Send + Sync + 'static,
+        Keyer: Fn(&OperatorChain::Out) -> Key + Send + Sync + 'static,
     {
         let keyer = Arc::new(keyer);
         KeyedStream(self.add_operator(|prev| KeyBy::new(prev, keyer)))

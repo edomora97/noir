@@ -22,12 +22,12 @@ pub type KeyValue<Key, Value> = (Key, Value);
 /// The type of the chain inside the block is `OperatorChain` and it's required as type argument of
 /// the stream. This type only represents the chain inside the last block of the stream, not all the
 /// blocks inside of it.
-pub struct Stream<Out: Data, OperatorChain>
+pub struct Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out>,
+    OperatorChain: Operator,
 {
     /// The last block inside the stream.
-    pub(crate) block: InnerBlock<Out, OperatorChain>,
+    pub(crate) block: InnerBlock<OperatorChain>,
     /// A reference to the environment this stream lives in.
     pub(crate) env: Rc<RefCell<StreamEnvironmentInner>>,
 }
@@ -37,9 +37,7 @@ where
 /// `KeyedStream` semantics.
 ///
 /// The type of the `Key` must be a valid key inside an hashmap.
-pub struct KeyedStream<Key: DataKey, Out: Data, OperatorChain>(
-    pub Stream<KeyValue<Key, Out>, OperatorChain>,
-)
+pub struct KeyedStream<Key: DataKey, Out: Data, OperatorChain>(pub Stream<OperatorChain>)
 where
     OperatorChain: Operator<Out = KeyValue<Key, Out>>;
 
@@ -52,9 +50,9 @@ where
     pub(crate) descr: WinDescr,
 }
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
     /// Add a new operator to the current chain inside the stream. This consumes the stream and
     /// returns a new one with the operator added.
@@ -62,12 +60,9 @@ where
     /// `get_operator` is a function that is given the previous chain of operators and should return
     /// the new chain of operators. The new chain cannot be simply passed as argument since it is
     /// required to do a partial move of the `InnerBlock` structure.
-    pub(crate) fn add_operator<NewOut: Data, Op, GetOp>(
-        self,
-        get_operator: GetOp,
-    ) -> Stream<NewOut, Op>
+    pub(crate) fn add_operator<Op, GetOp>(self, get_operator: GetOp) -> Stream<Op>
     where
-        Op: Operator<Out = NewOut> + 'static,
+        Op: Operator + 'static,
         GetOp: FnOnce(OperatorChain) -> Op,
     {
         Stream {
@@ -76,7 +71,6 @@ where
                 operators: get_operator(self.block.operators),
                 batch_mode: self.block.batch_mode,
                 scheduler_requirements: self.block.scheduler_requirements,
-                _out_type: Default::default(),
             },
             env: self.env,
         }
@@ -87,17 +81,17 @@ where
     ///
     /// `get_end_operator` is used to extend the operator chain of the old block with the last
     /// operator (e.g. `operator::EndBlock`, `operator::GroupByEndOperator`). The end operator must
-    /// be an `Operator<Out = ()>`.
+    /// be an `Operator`.
     ///
     /// The new block is initialized with a `StartBlock`.
     pub(crate) fn add_block<GetEndOp, Op>(
         self,
         get_end_operator: GetEndOp,
-        next_strategy: NextStrategy<Out>,
-    ) -> Stream<Out, StartBlock<Out>>
+        next_strategy: NextStrategy<OperatorChain::Out>,
+    ) -> Stream<StartBlock<OperatorChain::Out>>
     where
-        Op: Operator<Out = ()> + Send + 'static,
-        GetEndOp: FnOnce(OperatorChain, NextStrategy<Out>, BatchMode) -> Op,
+        Op: Operator + Send + 'static,
+        GetEndOp: FnOnce(OperatorChain, NextStrategy<OperatorChain::Out>, BatchMode) -> Op,
     {
         let batch_mode = self.block.batch_mode;
         let old_stream =
@@ -126,16 +120,14 @@ where
     /// The start operator of the new block must support multiple inputs: the provided function
     /// will be called with the ids of the 2 input blocks and should return the new start operator
     /// of the new block.
-    pub(crate) fn add_y_connection<Out2, OperatorChain2, NewOut, StartOperator, GetStartOp>(
+    pub(crate) fn add_y_connection<OperatorChain2, StartOperator, GetStartOp>(
         self,
-        oth: Stream<Out2, OperatorChain2>,
+        oth: Stream<OperatorChain2>,
         get_start_operator: GetStartOp,
-    ) -> Stream<NewOut, StartOperator>
+    ) -> Stream<StartOperator>
     where
-        Out2: Data,
-        OperatorChain2: Operator<Out = Out2> + Send + 'static,
-        NewOut: Data,
-        StartOperator: Operator<Out = NewOut>,
+        OperatorChain2: Operator + Send + 'static,
+        StartOperator: Operator,
         GetStartOp: Fn(BlockId, BlockId) -> StartOperator,
     {
         let batch_mode = self.block.batch_mode;

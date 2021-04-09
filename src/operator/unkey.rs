@@ -5,7 +5,7 @@ impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain
 where
     OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
-    pub fn unkey(self) -> Stream<KeyValue<Key, Out>, impl Operator<Out = KeyValue<Key, Out>>> {
+    pub fn unkey(self) -> Stream<impl Operator<Out = KeyValue<Key, Out>>> {
         self.0
     }
 }

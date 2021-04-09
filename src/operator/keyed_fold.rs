@@ -116,9 +116,9 @@ where
     }
 }
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
     pub fn group_by_fold<Key: DataKey, NewOut: Data, Keyer, Local, Global>(
         self,
@@ -128,8 +128,8 @@ where
         global: Global,
     ) -> KeyedStream<Key, NewOut, impl Operator<Out = KeyValue<Key, NewOut>>>
     where
-        Keyer: Fn(&Out) -> Key + Send + Sync + 'static,
-        Local: Fn(NewOut, Out) -> NewOut + Send + Sync + 'static,
+        Keyer: Fn(&OperatorChain::Out) -> Key + Send + Sync + 'static,
+        Local: Fn(NewOut, OperatorChain::Out) -> NewOut + Send + Sync + 'static,
         Global: Fn(NewOut, NewOut) -> NewOut + Send + Sync + 'static,
     {
         let keyer = Arc::new(keyer);

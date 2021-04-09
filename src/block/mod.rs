@@ -1,11 +1,10 @@
 use std::fmt::{Debug, Display, Formatter};
-use std::marker::PhantomData;
 
 pub use batcher::BatchMode;
 pub(crate) use batcher::*;
 pub(crate) use next_strategy::*;
 
-use crate::operator::{Data, Operator};
+use crate::operator::Operator;
 use crate::stream::BlockId;
 
 mod batcher;
@@ -19,9 +18,9 @@ mod next_strategy;
 /// `OperatorChain` is the type of the chain of operators inside the block. It must be an operator
 /// that yields values of type `Out`.
 #[derive(Debug, Clone)]
-pub(crate) struct InnerBlock<Out: Data, OperatorChain>
+pub(crate) struct InnerBlock<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out>,
+    OperatorChain: Operator,
 {
     /// The identifier of the block inside the environment.
     pub(crate) id: BlockId,
@@ -31,8 +30,6 @@ where
     pub(crate) batch_mode: BatchMode,
     /// The set of requirements that the block imposes on the scheduler.
     pub(crate) scheduler_requirements: SchedulerRequirements,
-
-    pub _out_type: PhantomData<Out>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -45,9 +42,9 @@ pub(crate) struct SchedulerRequirements {
     pub(crate) max_parallelism: Option<usize>,
 }
 
-impl<Out: Data, OperatorChain> InnerBlock<Out, OperatorChain>
+impl<OperatorChain> InnerBlock<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out>,
+    OperatorChain: Operator,
 {
     pub fn new(id: BlockId, operators: OperatorChain, batch_mode: BatchMode) -> Self {
         Self {
@@ -55,14 +52,13 @@ where
             operators,
             batch_mode,
             scheduler_requirements: Default::default(),
-            _out_type: Default::default(),
         }
     }
 }
 
-impl<Out: Data, OperatorChain> Display for InnerBlock<Out, OperatorChain>
+impl<OperatorChain> Display for InnerBlock<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out>,
+    OperatorChain: Operator,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.operators.to_string())

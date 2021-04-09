@@ -2,31 +2,31 @@ use std::collections::HashMap;
 
 use crate::block::{BatchMode, Batcher, NextStrategy, SenderList};
 use crate::network::ReceiverEndpoint;
-use crate::operator::{Data, Operator, StreamElement};
+use crate::operator::{Operator, StreamElement};
 use crate::scheduler::ExecutionMetadata;
 
 #[derive(Derivative)]
 #[derivative(Clone, Debug)]
-pub struct EndBlock<Out: Data, OperatorChain>
+pub struct EndBlock<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out>,
+    OperatorChain: Operator,
 {
     prev: OperatorChain,
     metadata: Option<ExecutionMetadata>,
-    next_strategy: NextStrategy<Out>,
+    next_strategy: NextStrategy<OperatorChain::Out>,
     batch_mode: BatchMode,
     sender_groups: Vec<SenderList>,
     #[derivative(Debug = "ignore", Clone(clone_with = "clone_default"))]
-    senders: HashMap<ReceiverEndpoint, Batcher<Out>>,
+    senders: HashMap<ReceiverEndpoint, Batcher<OperatorChain::Out>>,
 }
 
-impl<Out: Data, OperatorChain> EndBlock<Out, OperatorChain>
+impl<OperatorChain> EndBlock<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out>,
+    OperatorChain: Operator,
 {
     pub(crate) fn new(
         prev: OperatorChain,
-        next_strategy: NextStrategy<Out>,
+        next_strategy: NextStrategy<OperatorChain::Out>,
         batch_mode: BatchMode,
     ) -> Self {
         Self {
@@ -40,9 +40,9 @@ where
     }
 }
 
-impl<Out: Data, OperatorChain> Operator for EndBlock<Out, OperatorChain>
+impl<OperatorChain> Operator for EndBlock<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send,
+    OperatorChain: Operator + Send,
 {
     type Out = ();
 

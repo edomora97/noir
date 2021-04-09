@@ -6,18 +6,18 @@ use crate::stream::{KeyValue, KeyedStream, Stream};
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
-pub struct Map<Out: Data, NewOut: Data, PreviousOperators>
+pub struct Map<NewOut: Data, PreviousOperators>
 where
-    PreviousOperators: Operator<Out = Out>,
+    PreviousOperators: Operator,
 {
     prev: PreviousOperators,
     #[derivative(Debug = "ignore")]
-    f: Arc<dyn Fn(Out) -> NewOut + Send + Sync>,
+    f: Arc<dyn Fn(PreviousOperators::Out) -> NewOut + Send + Sync>,
 }
 
-impl<Out: Data, NewOut: Data, PreviousOperators> Operator for Map<Out, NewOut, PreviousOperators>
+impl<NewOut: Data, PreviousOperators> Operator for Map<NewOut, PreviousOperators>
 where
-    PreviousOperators: Operator<Out = Out> + Send,
+    PreviousOperators: Operator + Send,
 {
     type Out = NewOut;
 
@@ -33,19 +33,19 @@ where
         format!(
             "{} -> Map<{} -> {}>",
             self.prev.to_string(),
-            std::any::type_name::<Out>(),
+            std::any::type_name::<PreviousOperators::Out>(),
             std::any::type_name::<NewOut>()
         )
     }
 }
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
-    pub fn map<NewOut: Data, F>(self, f: F) -> Stream<NewOut, impl Operator<Out = NewOut>>
+    pub fn map<NewOut: Data, F>(self, f: F) -> Stream<impl Operator<Out = NewOut>>
     where
-        F: Fn(Out) -> NewOut + Send + Sync + 'static,
+        F: Fn(OperatorChain::Out) -> NewOut + Send + Sync + 'static,
     {
         self.add_operator(|prev| Map {
             prev,

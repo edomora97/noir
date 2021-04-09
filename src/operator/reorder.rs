@@ -1,7 +1,8 @@
-use crate::operator::{Data, Operator, StreamElement, Timestamp};
-use crate::scheduler::ExecutionMetadata;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
+
+use crate::operator::{Operator, StreamElement, Timestamp};
+use crate::scheduler::ExecutionMetadata;
 
 #[derive(Clone)]
 struct HeapElement<Out> {
@@ -32,19 +33,19 @@ impl<Out> PartialEq for HeapElement<Out> {
 }
 
 #[derive(Clone)]
-pub(crate) struct Reorder<Out: Data, PreviousOperators>
+pub(crate) struct Reorder<PreviousOperators>
 where
-    PreviousOperators: Operator<Out = Out>,
+    PreviousOperators: Operator,
 {
-    buffer: BinaryHeap<HeapElement<Out>>,
+    buffer: BinaryHeap<HeapElement<PreviousOperators::Out>>,
     last_watermark: Option<Timestamp>,
     prev: PreviousOperators,
     received_end: bool,
 }
 
-impl<Out: Data, PreviousOperators> Reorder<Out, PreviousOperators>
+impl<PreviousOperators> Reorder<PreviousOperators>
 where
-    PreviousOperators: Operator<Out = Out>,
+    PreviousOperators: Operator,
 {
     pub(crate) fn new(prev: PreviousOperators) -> Self {
         Self {
@@ -56,17 +57,17 @@ where
     }
 }
 
-impl<Out: Data, PreviousOperators> Operator for Reorder<Out, PreviousOperators>
+impl<PreviousOperators> Operator for Reorder<PreviousOperators>
 where
-    PreviousOperators: Operator<Out = Out>,
+    PreviousOperators: Operator,
 {
-    type Out = Out;
+    type Out = PreviousOperators::Out;
 
     fn setup(&mut self, metadata: ExecutionMetadata) {
         self.prev.setup(metadata);
     }
 
-    fn next(&mut self) -> StreamElement<Out> {
+    fn next(&mut self) -> StreamElement<PreviousOperators::Out> {
         while !self.received_end && self.last_watermark.is_none() {
             match self.prev.next() {
                 // TODO: should this do something different with elements that are not timestamped?
@@ -102,18 +103,19 @@ where
         format!(
             "{} -> Reorder<{}>",
             self.prev.to_string(),
-            std::any::type_name::<Out>(),
+            std::any::type_name::<PreviousOperators::Out>(),
         )
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::collections::VecDeque;
+    use std::time::Duration;
+
     use crate::operator::reorder::Reorder;
     use crate::operator::{Data, Operator, StreamElement};
     use crate::scheduler::ExecutionMetadata;
-    use std::collections::VecDeque;
-    use std::time::Duration;
 
     #[derive(Clone)]
     struct FakeOperator<Out: Data> {
@@ -142,7 +144,7 @@ mod tests {
         }
 
         fn to_string(&self) -> String {
-            format!("FakeOperator<Out = {}>", std::any::type_name::<Out>())
+            format!("FakeOperator<{}>", std::any::type_name::<Out>())
         }
     }
 

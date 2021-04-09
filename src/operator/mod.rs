@@ -75,7 +75,7 @@ pub enum StreamElement<Out> {
 /// An operator represents a unit of computation. It's always included inside a chain of operators,
 /// inside a block.
 ///
-/// Each operator implements the `Operator<Out = Out>` trait, it produced a stream of `Out` elements.
+/// Each operator implements the `Operator` trait, it produced a stream of `Out` elements.
 ///
 /// An `Operator` must be Clone since it is part of a single chain when it's built, but it has to
 /// be cloned to spawn the replicas of the block.

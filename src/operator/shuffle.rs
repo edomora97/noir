@@ -1,12 +1,12 @@
 use crate::block::NextStrategy;
-use crate::operator::{Data, EndBlock, Operator};
+use crate::operator::{EndBlock, Operator};
 use crate::stream::Stream;
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
-    pub fn shuffle(self) -> Stream<Out, impl Operator<Out = Out>> {
+    pub fn shuffle(self) -> Stream<impl Operator<Out = OperatorChain::Out>> {
         self.add_block(EndBlock::new, NextStrategy::Random)
     }
 }

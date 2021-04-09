@@ -7,13 +7,13 @@ use crate::stream::Stream;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
-pub struct Fold<Out: Data, NewOut: Data, PreviousOperators>
+pub struct Fold<NewOut: Data, PreviousOperators>
 where
-    PreviousOperators: Operator<Out = Out>,
+    PreviousOperators: Operator,
 {
     prev: PreviousOperators,
     #[derivative(Debug = "ignore")]
-    fold: Arc<dyn Fn(NewOut, Out) -> NewOut + Send + Sync>,
+    fold: Arc<dyn Fn(NewOut, PreviousOperators::Out) -> NewOut + Send + Sync>,
     init: NewOut,
     accumulator: Option<NewOut>,
     timestamp: Option<Timestamp>,
@@ -21,12 +21,10 @@ where
     received_end: bool,
 }
 
-impl<Out: Data, NewOut: Data, PreviousOperators: Operator<Out = Out>>
-    Fold<Out, NewOut, PreviousOperators>
-{
+impl<NewOut: Data, PreviousOperators: Operator> Fold<NewOut, PreviousOperators> {
     fn new<F>(prev: PreviousOperators, init: NewOut, fold: F) -> Self
     where
-        F: Fn(NewOut, Out) -> NewOut + Send + Sync + 'static,
+        F: Fn(NewOut, PreviousOperators::Out) -> NewOut + Send + Sync + 'static,
     {
         Fold {
             prev,
@@ -40,9 +38,9 @@ impl<Out: Data, NewOut: Data, PreviousOperators: Operator<Out = Out>>
     }
 }
 
-impl<Out: Data, NewOut: Data, PreviousOperators> Operator for Fold<Out, NewOut, PreviousOperators>
+impl<NewOut: Data, PreviousOperators> Operator for Fold<NewOut, PreviousOperators>
 where
-    PreviousOperators: Operator<Out = Out> + Send,
+    PreviousOperators: Operator + Send,
 {
     type Out = NewOut;
 
@@ -96,23 +94,19 @@ where
         format!(
             "{} -> Fold<{} -> {}>",
             self.prev.to_string(),
-            std::any::type_name::<Out>(),
+            std::any::type_name::<PreviousOperators::Out>(),
             std::any::type_name::<NewOut>()
         )
     }
 }
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
-    pub fn fold<NewOut: Data, F>(
-        self,
-        init: NewOut,
-        f: F,
-    ) -> Stream<NewOut, impl Operator<Out = NewOut>>
+    pub fn fold<NewOut: Data, F>(self, init: NewOut, f: F) -> Stream<impl Operator<Out = NewOut>>
     where
-        F: Fn(NewOut, Out) -> NewOut + Send + Sync + 'static,
+        F: Fn(NewOut, OperatorChain::Out) -> NewOut + Send + Sync + 'static,
     {
         let mut new_stream = self.add_block(EndBlock::new, NextStrategy::OnlyOne);
         // FIXME: when implementing Stream::max_parallelism use that here
@@ -125,9 +119,9 @@ where
         init: NewOut,
         local: Local,
         global: Global,
-    ) -> Stream<NewOut, impl Operator<Out = NewOut>>
+    ) -> Stream<impl Operator<Out = NewOut>>
     where
-        Local: Fn(NewOut, Out) -> NewOut + Send + Sync + 'static,
+        Local: Fn(NewOut, OperatorChain::Out) -> NewOut + Send + Sync + 'static,
         Global: Fn(NewOut, NewOut) -> NewOut + Send + Sync + 'static,
     {
         // Local fold

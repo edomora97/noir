@@ -1,22 +1,22 @@
 use crate::block::NextStrategy;
 use crate::operator::sink::{Sink, StreamOutput, StreamOutputRef};
-use crate::operator::{Data, EndBlock, Operator, StreamElement};
+use crate::operator::{EndBlock, Operator, StreamElement};
 use crate::scheduler::ExecutionMetadata;
 use crate::stream::Stream;
 
 #[derive(Debug)]
-pub struct CollectVecSink<Out: Data, PreviousOperators>
+pub struct CollectVecSink<PreviousOperators>
 where
-    PreviousOperators: Operator<Out = Out>,
+    PreviousOperators: Operator,
 {
     prev: PreviousOperators,
-    result: Option<Vec<Out>>,
-    output: StreamOutputRef<Vec<Out>>,
+    result: Option<Vec<PreviousOperators::Out>>,
+    output: StreamOutputRef<Vec<PreviousOperators::Out>>,
 }
 
-impl<Out: Data, PreviousOperators> Operator for CollectVecSink<Out, PreviousOperators>
+impl<PreviousOperators> Operator for CollectVecSink<PreviousOperators>
 where
-    PreviousOperators: Operator<Out = Out> + Send,
+    PreviousOperators: Operator + Send,
 {
     type Out = ();
 
@@ -49,25 +49,25 @@ where
     }
 }
 
-impl<Out: Data, PreviousOperators> Sink for CollectVecSink<Out, PreviousOperators> where
-    PreviousOperators: Operator<Out = Out> + Send
+impl<PreviousOperators> Sink for CollectVecSink<PreviousOperators> where
+    PreviousOperators: Operator + Send
 {
 }
 
-impl<Out: Data, PreviousOperators> Clone for CollectVecSink<Out, PreviousOperators>
+impl<PreviousOperators> Clone for CollectVecSink<PreviousOperators>
 where
-    PreviousOperators: Operator<Out = Out> + Send,
+    PreviousOperators: Operator + Send,
 {
     fn clone(&self) -> Self {
         panic!("CollectVecSink cannot be cloned, max_parallelism should be 1");
     }
 }
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
-    pub fn collect_vec(self) -> StreamOutput<Vec<Out>> {
+    pub fn collect_vec(self) -> StreamOutput<Vec<OperatorChain::Out>> {
         let output = StreamOutputRef::default();
         let mut new_stream = self.add_block(EndBlock::new, NextStrategy::OnlyOne);
         // FIXME: when implementing Stream::max_parallelism use that here

@@ -1,16 +1,16 @@
-use crate::operator::{Data, Operator, StartBlock};
+use crate::operator::{Operator, StartBlock};
 use crate::stream::Stream;
 
-impl<Out: Data, OperatorChain> Stream<Out, OperatorChain>
+impl<OperatorChain> Stream<OperatorChain>
 where
-    OperatorChain: Operator<Out = Out> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
     pub fn concat<OperatorChain2>(
         self,
-        oth: Stream<Out, OperatorChain2>,
-    ) -> Stream<Out, impl Operator<Out = Out>>
+        oth: Stream<OperatorChain2>,
+    ) -> Stream<impl Operator<Out = OperatorChain::Out>>
     where
-        OperatorChain2: Operator<Out = Out> + Send + 'static,
+        OperatorChain2: Operator + Send + 'static,
     {
         self.add_y_connection(oth, |id1, id2| StartBlock::concat(vec![id1, id2]))
     }
