@@ -12,7 +12,7 @@ where
         self,
         init: NewOut,
         fold: F,
-    ) -> KeyedStream<Key, NewOut, impl Operator<Out = KeyValue<Key, NewOut>>>
+    ) -> KeyedStream<impl Operator<Out = KeyValue<Key, NewOut>>>
     where
         F: Fn(NewOut, &Out) -> NewOut + Clone + 'static,
     {

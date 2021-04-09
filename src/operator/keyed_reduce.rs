@@ -10,7 +10,7 @@ where
         self,
         keyer: Keyer,
         f: F,
-    ) -> KeyedStream<Key, OperatorChain::Out, impl Operator<Out = KeyValue<Key, OperatorChain::Out>>>
+    ) -> KeyedStream<impl Operator<Out = KeyValue<Key, OperatorChain::Out>>>
     where
         Keyer: Fn(&OperatorChain::Out) -> Key + Send + Sync + 'static,
         F: Fn(OperatorChain::Out, OperatorChain::Out) -> OperatorChain::Out + Send + Sync + 'static,
@@ -38,11 +38,11 @@ where
     }
 }
 
-impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
+impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<OperatorChain>
 where
     OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
-    pub fn reduce<F>(self, f: F) -> KeyedStream<Key, Out, impl Operator<Out = KeyValue<Key, Out>>>
+    pub fn reduce<F>(self, f: F) -> KeyedStream<impl Operator<Out = KeyValue<Key, Out>>>
     where
         F: Fn(Out, Out) -> Out + Send + Sync + 'static,
     {

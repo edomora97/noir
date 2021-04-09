@@ -10,7 +10,7 @@ where
     OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
     for<'a> Out: Sum<&'a Out>,
 {
-    pub fn sum(self) -> KeyedStream<Key, Out, impl Operator<Out = KeyValue<Key, Out>>> {
+    pub fn sum(self) -> KeyedStream<impl Operator<Out = KeyValue<Key, Out>>> {
         let stream = self.inner;
         let descr = self.descr;
 

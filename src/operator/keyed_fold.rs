@@ -126,7 +126,7 @@ where
         init: NewOut,
         local: Local,
         global: Global,
-    ) -> KeyedStream<Key, NewOut, impl Operator<Out = KeyValue<Key, NewOut>>>
+    ) -> KeyedStream<impl Operator<Out = KeyValue<Key, NewOut>>>
     where
         Keyer: Fn(&OperatorChain::Out) -> Key + Send + Sync + 'static,
         Local: Fn(NewOut, OperatorChain::Out) -> NewOut + Send + Sync + 'static,
@@ -156,7 +156,7 @@ where
     }
 }
 
-impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
+impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<OperatorChain>
 where
     OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
@@ -164,7 +164,7 @@ where
         self,
         init: NewOut,
         f: F,
-    ) -> KeyedStream<Key, NewOut, impl Operator<Out = KeyValue<Key, NewOut>>>
+    ) -> KeyedStream<impl Operator<Out = KeyValue<Key, NewOut>>>
     where
         F: Fn(NewOut, Out) -> NewOut + Send + Sync + 'static,
     {

@@ -37,16 +37,16 @@ where
 /// `KeyedStream` semantics.
 ///
 /// The type of the `Key` must be a valid key inside an hashmap.
-pub struct KeyedStream<Key: DataKey, Out: Data, OperatorChain>(pub Stream<OperatorChain>)
+pub struct KeyedStream<OperatorChain>(pub Stream<OperatorChain>)
 where
-    OperatorChain: Operator<Out = KeyValue<Key, Out>>;
+    OperatorChain: Operator;
 
 pub struct WindowedStream<Key: DataKey, Out: Data, OperatorChain, WinDescr>
 where
     OperatorChain: Operator<Out = KeyValue<Key, Out>>,
     WinDescr: WindowDescription<Key, Out>,
 {
-    pub(crate) inner: KeyedStream<Key, Out, OperatorChain>,
+    pub(crate) inner: KeyedStream<OperatorChain>,
     pub(crate) descr: WinDescr,
 }
 
@@ -201,16 +201,13 @@ where
     }
 }
 
-impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
+impl<OperatorChain> KeyedStream<OperatorChain>
 where
-    OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
+    OperatorChain: Operator + Send + 'static,
 {
-    pub(crate) fn add_operator<NewOut: Data, Op, GetOp>(
-        self,
-        get_operator: GetOp,
-    ) -> KeyedStream<Key, NewOut, Op>
+    pub(crate) fn add_operator<Op, GetOp>(self, get_operator: GetOp) -> KeyedStream<Op>
     where
-        Op: Operator<Out = KeyValue<Key, NewOut>> + 'static,
+        Op: Operator + 'static,
         GetOp: FnOnce(OperatorChain) -> Op,
     {
         KeyedStream(self.0.add_operator(get_operator))

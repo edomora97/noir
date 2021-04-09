@@ -151,7 +151,7 @@ impl<Key: DataKey, Out: Data, WindowDescr: WindowDescription<Key, Out>>
     }
 }
 
-impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
+impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<OperatorChain>
 where
     OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {

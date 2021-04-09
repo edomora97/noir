@@ -54,14 +54,14 @@ where
     }
 }
 
-impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
+impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<OperatorChain>
 where
     OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
     pub fn map<NewOut: Data, F>(
         self,
         f: F,
-    ) -> KeyedStream<Key, NewOut, impl Operator<Out = KeyValue<Key, NewOut>>>
+    ) -> KeyedStream<impl Operator<Out = KeyValue<Key, NewOut>>>
     where
         F: Fn(KeyValue<&Key, Out>) -> NewOut + Send + Sync + 'static,
     {

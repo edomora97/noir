@@ -9,7 +9,7 @@ where
     OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
     /// For each window, return the first element.
-    pub fn first(self) -> KeyedStream<Key, Out, impl Operator<Out = KeyValue<Key, Out>>> {
+    pub fn first(self) -> KeyedStream<impl Operator<Out = KeyValue<Key, Out>>> {
         let stream = self.inner;
         let descr = self.descr;
 

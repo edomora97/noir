@@ -17,7 +17,7 @@ where
     pub fn group_by<Key: DataKey, Keyer>(
         self,
         keyer: Keyer,
-    ) -> KeyedStream<Key, OperatorChain::Out, impl Operator<Out = KeyValue<Key, OperatorChain::Out>>>
+    ) -> KeyedStream<impl Operator<Out = KeyValue<Key, OperatorChain::Out>>>
     where
         Keyer: Fn(&OperatorChain::Out) -> Key + Send + Sync + 'static,
     {

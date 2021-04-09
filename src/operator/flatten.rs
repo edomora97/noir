@@ -102,13 +102,13 @@ where
     }
 }
 
-impl<Key: DataKey, Out: Data, NewOut: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
+impl<Key: DataKey, Out: Data, NewOut: Data, OperatorChain> KeyedStream<OperatorChain>
 where
     Out: IntoIterator<Item = NewOut>,
     <Out as IntoIterator>::IntoIter: Clone + Send + 'static,
     OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
-    pub fn flatten(self) -> KeyedStream<Key, NewOut, impl Operator<Out = KeyValue<Key, NewOut>>> {
+    pub fn flatten(self) -> KeyedStream<impl Operator<Out = KeyValue<Key, NewOut>>> {
         self.add_operator(|prev| Flatten {
             prev,
             buffer: Default::default(),
@@ -119,14 +119,14 @@ where
     }
 }
 
-impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<Key, Out, OperatorChain>
+impl<Key: DataKey, Out: Data, OperatorChain> KeyedStream<OperatorChain>
 where
     OperatorChain: Operator<Out = KeyValue<Key, Out>> + Send + 'static,
 {
     pub fn flat_map<NewOut: Data, MapOut: Data, F>(
         self,
         f: F,
-    ) -> KeyedStream<Key, NewOut, impl Operator<Out = KeyValue<Key, NewOut>>>
+    ) -> KeyedStream<impl Operator<Out = KeyValue<Key, NewOut>>>
     where
         MapOut: IntoIterator<Item = NewOut>,
         <MapOut as IntoIterator>::IntoIter: Clone + Send + 'static,
