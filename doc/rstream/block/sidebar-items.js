@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["BatchMode","Which policy to use for batching the messages before sending them."]]});

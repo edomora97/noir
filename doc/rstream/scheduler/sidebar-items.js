@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ExecutionMetadata","Metadata associated to a block in the execution graph."]],"type":[["HostId","The identifier of an host."],["ReplicaId","The identifier of a replica of a block in the execution graph."]]});

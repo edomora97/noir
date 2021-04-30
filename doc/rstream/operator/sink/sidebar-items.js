@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["CollectVecSink",""],["ForEachSink",""],["StreamOutput",""]],"trait":[["Sink",""]],"type":[["StreamOutputRef",""]]});
