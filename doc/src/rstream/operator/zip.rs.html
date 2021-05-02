@@ -277,14 +277,14 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out1</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain1</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out1</span>, <span class="ident">OperatorChain1</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">OperatorChain1</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out1</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain1</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out1</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">zip</span><span class="op">&lt;</span><span class="ident">Out2</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain2</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">oth</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out2</span>, <span class="ident">OperatorChain2</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span>(<span class="ident">Out1</span>, <span class="ident">Out2</span>), <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span>(<span class="ident">Out1</span>, <span class="ident">Out2</span>)<span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out2</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out2</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_stream</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_y_connection</span>(<span class="ident">oth</span>, <span class="ident">Zip</span>::<span class="ident">new</span>);
         <span class="comment">// if the zip operator is partitioned there could be some loss of data</span>

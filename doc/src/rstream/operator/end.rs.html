@@ -244,7 +244,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span> <span class="ident">Operator</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">EndBlock</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">setup</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">metadata</span>: <span class="ident">ExecutionMetadata</span>) {
         <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">setup</span>(<span class="ident">metadata</span>.<span class="ident">clone</span>());

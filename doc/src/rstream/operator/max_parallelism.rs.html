@@ -49,7 +49,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_parallelism</span>(<span class="self">self</span>, <span class="ident">max_parallelism</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">max_parallelism</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;Cannot set the parallelism to zero&quot;</span>);

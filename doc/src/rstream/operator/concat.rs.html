@@ -41,14 +41,14 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat</span><span class="op">&lt;</span><span class="ident">OperatorChain2</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">oth</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">OperatorChain2</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="self">self</span>.<span class="ident">add_y_connection</span>(<span class="ident">oth</span>, <span class="op">|</span><span class="ident">id1</span>, <span class="ident">id2</span>, <span class="ident">state_lock</span><span class="op">|</span> {
             <span class="ident">StartBlock</span>::<span class="ident">concat</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">id1</span>, <span class="ident">id2</span>], <span class="ident">state_lock</span>)
@@ -58,14 +58,14 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Key</span>: <span class="ident">DataKey</span>, <span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span> <span class="ident">KeyedStream</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat</span><span class="op">&lt;</span><span class="ident">OperatorChain2</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">oth</span>: <span class="ident">KeyedStream</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span>, <span class="ident">OperatorChain2</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">KeyedStream</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="ident">KeyedStream</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">concat</span>(<span class="ident">oth</span>.<span class="number">0</span>))
     }

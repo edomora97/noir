@@ -25,6 +25,8 @@
 <span id="22">22</span>
 <span id="23">23</span>
 <span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::{<span class="ident">Data</span>, <span class="ident">DataKey</span>, <span class="ident">Operator</span>, <span class="ident">WindowDescription</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">stream</span>::{<span class="ident">KeyValue</span>, <span class="ident">KeyedStream</span>, <span class="ident">KeyedWindowedStream</span>, <span class="ident">Stream</span>, <span class="ident">WindowedStream</span>};
@@ -33,10 +35,12 @@
     <span class="ident">KeyedWindowedStream</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span>, <span class="ident">OperatorChain</span>, <span class="ident">Out</span>, <span class="ident">WindowDescr</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">WindowDescr</span>: <span class="ident">WindowDescription</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">KeyedStream</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">add_generic_window_operator</span>(<span class="string">&quot;Min&quot;</span>, <span class="op">|</span><span class="ident">window</span><span class="op">|</span> <span class="ident">window</span>.<span class="ident">items</span>().<span class="ident">min</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>())
+        <span class="self">self</span>.<span class="ident">add_generic_window_operator</span>(<span class="string">&quot;WindowMin&quot;</span>, <span class="op">|</span><span class="ident">window</span><span class="op">|</span> {
+            <span class="ident">window</span>.<span class="ident">items</span>().<span class="ident">min</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()
+        })
     }
 }
 
@@ -44,7 +48,7 @@
     <span class="ident">WindowedStream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">OperatorChain</span>, <span class="ident">Out</span>, <span class="ident">WindowDescr</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">WindowDescr</span>: <span class="ident">WindowDescription</span><span class="op">&lt;</span>(), <span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span>(), <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span>(), <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">min</span>().<span class="ident">unkey</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">x</span>)<span class="op">|</span> <span class="ident">x</span>)

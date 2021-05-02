@@ -212,8 +212,11 @@
 <span id="209">209</span>
 <span id="210">210</span>
 <span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">block</span>::{<span class="ident">BlockStructure</span>, <span class="ident">OperatorStructure</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::{<span class="ident">Data</span>, <span class="ident">Operator</span>, <span class="ident">StreamElement</span>, <span class="ident">Timestamp</span>};
@@ -222,45 +225,48 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Derivative</span>)]</span>
 <span class="attribute">#[<span class="ident">derivative</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Fold</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">NewOut</span>: <span class="ident">Data</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Fold</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">NewOut</span>: <span class="ident">Data</span>, <span class="ident">F</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span>
 <span class="kw">where</span>
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NewOut</span>, <span class="ident">Out</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span>,
     <span class="ident">PreviousOperators</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>,
 {
     <span class="ident">prev</span>: <span class="ident">PreviousOperators</span>,
     <span class="attribute">#[<span class="ident">derivative</span>(<span class="ident">Debug</span> <span class="op">=</span> <span class="string">&quot;ignore&quot;</span>)]</span>
-    <span class="ident">fold</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NewOut</span>, <span class="ident">Out</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>,
+    <span class="ident">fold</span>: <span class="ident">F</span>,
     <span class="ident">init</span>: <span class="ident">NewOut</span>,
     <span class="ident">accumulator</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NewOut</span><span class="op">&gt;</span>,
     <span class="ident">timestamp</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Timestamp</span><span class="op">&gt;</span>,
     <span class="ident">max_watermark</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Timestamp</span><span class="op">&gt;</span>,
     <span class="ident">received_end</span>: <span class="ident">bool</span>,
     <span class="ident">received_end_iter</span>: <span class="ident">bool</span>,
+    <span class="ident">_out</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">NewOut</span>: <span class="ident">Data</span>, <span class="ident">PreviousOperators</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="ident">Fold</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">NewOut</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">NewOut</span>: <span class="ident">Data</span>, <span class="ident">F</span>, <span class="ident">PreviousOperators</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="ident">Fold</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">NewOut</span>, <span class="ident">F</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NewOut</span>, <span class="ident">Out</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span>,
 {
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">prev</span>: <span class="ident">PreviousOperators</span>, <span class="ident">init</span>: <span class="ident">NewOut</span>, <span class="ident">fold</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NewOut</span>, <span class="ident">Out</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">prev</span>: <span class="ident">PreviousOperators</span>, <span class="ident">init</span>: <span class="ident">NewOut</span>, <span class="ident">fold</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Fold</span> {
             <span class="ident">prev</span>,
-            <span class="ident">fold</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">fold</span>),
+            <span class="ident">fold</span>,
             <span class="ident">init</span>,
             <span class="ident">accumulator</span>: <span class="prelude-val">None</span>,
             <span class="ident">timestamp</span>: <span class="prelude-val">None</span>,
             <span class="ident">max_watermark</span>: <span class="prelude-val">None</span>,
             <span class="ident">received_end</span>: <span class="bool-val">false</span>,
             <span class="ident">received_end_iter</span>: <span class="bool-val">false</span>,
+            <span class="ident">_out</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">NewOut</span>: <span class="ident">Data</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">NewOut</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Fold</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">NewOut</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">NewOut</span>: <span class="ident">Data</span>, <span class="ident">F</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">NewOut</span><span class="op">&gt;</span>
+    <span class="kw">for</span> <span class="ident">Fold</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">NewOut</span>, <span class="ident">F</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">PreviousOperators</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NewOut</span>, <span class="ident">Out</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="ident">PreviousOperators</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">setup</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">metadata</span>: <span class="ident">ExecutionMetadata</span>) {
         <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">setup</span>(<span class="ident">metadata</span>);
@@ -337,11 +343,11 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">NewOut</span>: <span class="ident">Data</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">NewOut</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">NewOut</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">NewOut</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NewOut</span>, <span class="ident">Out</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NewOut</span>, <span class="ident">Out</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="self">self</span>.<span class="ident">max_parallelism</span>(<span class="number">1</span>)
             .<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">Fold</span>::<span class="ident">new</span>(<span class="ident">prev</span>, <span class="ident">init</span>, <span class="ident">f</span>))
@@ -354,8 +360,8 @@
         <span class="ident">global</span>: <span class="ident">Global</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">NewOut</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">NewOut</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">Local</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NewOut</span>, <span class="ident">Out</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">Global</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NewOut</span>, <span class="ident">NewOut</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">Local</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NewOut</span>, <span class="ident">Out</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">Global</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NewOut</span>, <span class="ident">NewOut</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="self">self</span>.<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">Fold</span>::<span class="ident">new</span>(<span class="ident">prev</span>, <span class="ident">init</span>.<span class="ident">clone</span>(), <span class="ident">local</span>))
             .<span class="ident">max_parallelism</span>(<span class="number">1</span>)

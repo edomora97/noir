@@ -166,7 +166,7 @@
     <span class="ident">structure_sender</span>: <span class="ident">UnboundedChannelSender</span><span class="op">&lt;</span>(<span class="ident">Coord</span>, <span class="ident">BlockStructure</span>)<span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StartHandle</span>
 <span class="kw">where</span>
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">BoundedChannelReceiver</span>::<span class="ident">new</span>(<span class="number">1</span>);
     <span class="kw">let</span> <span class="ident">join_handle</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
@@ -181,7 +181,7 @@
     <span class="ident">metadata_receiver</span>: <span class="ident">BoundedChannelReceiver</span><span class="op">&lt;</span><span class="ident">ExecutionMetadata</span><span class="op">&gt;</span>,
     <span class="ident">structure_sender</span>: <span class="ident">UnboundedChannelSender</span><span class="op">&lt;</span>(<span class="ident">Coord</span>, <span class="ident">BlockStructure</span>)<span class="op">&gt;</span>,
 ) <span class="kw">where</span>
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let</span> <span class="ident">metadata</span> <span class="op">=</span> <span class="ident">metadata_receiver</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>();
     <span class="ident">drop</span>(<span class="ident">metadata_receiver</span>);

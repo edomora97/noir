@@ -309,6 +309,12 @@
 <span id="306">306</span>
 <span id="307">307</span>
 <span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Cow</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
@@ -321,6 +327,7 @@
 <span class="kw">use</span> <span class="ident">ssh2</span>::<span class="ident">Session</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">config</span>::{<span class="ident">RemoteHostConfig</span>, <span class="ident">RemoteRuntimeConfig</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">profiler</span>::<span class="ident">Stopwatch</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">scheduler</span>::<span class="ident">HostId</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">TracingData</span>;
 
@@ -342,6 +349,9 @@
     <span class="kw">if</span> <span class="ident">is_spawned_process</span>() {
         <span class="kw">return</span>;
     }
+
+    <span class="kw">let</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch</span>::<span class="ident">new</span>(<span class="string">&quot;wall&quot;</span>);
+
     <span class="comment">// from now we are sure this is the process that should spawn the remote workers</span>
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Spawning {} remote workers&quot;</span>, <span class="ident">config</span>.<span class="ident">hosts</span>.<span class="ident">len</span>());
     <span class="kw">let</span> <span class="ident">config_str</span> <span class="op">=</span> <span class="ident">serde_yaml</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>).<span class="ident">unwrap</span>();
@@ -373,6 +383,8 @@
         <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">target</span>, <span class="kw-2">&amp;</span><span class="ident">tracing_data</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Failed to write tracing json file&quot;</span>);
     }
+
+    <span class="ident">drop</span>(<span class="ident">stopwatch</span>);
 
     <span class="comment">// all the remote processes have finished, exit to avoid running the environment inside the</span>
     <span class="comment">// spawner process</span>

@@ -343,7 +343,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="doccomment">/// Add a new operator to the current chain inside the stream. This consumes the stream and</span>
     <span class="doccomment">/// returns a new one with the operator added.</span>
@@ -385,7 +385,7 @@
         <span class="ident">next_strategy</span>: <span class="ident">NextStrategy</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">StartBlock</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">Op</span>: <span class="ident">Operator</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">Op</span>: <span class="ident">Operator</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
         <span class="ident">GetEndOp</span>: <span class="ident">FnOnce</span>(<span class="ident">OperatorChain</span>, <span class="ident">NextStrategy</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>, <span class="ident">BatchMode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Op</span>,
     {
         <span class="kw">let</span> <span class="ident">batch_mode</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">batch_mode</span>;
@@ -426,7 +426,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">NewOut</span>, <span class="ident">StartOperator</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">Out2</span>: <span class="ident">Data</span>,
-        <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out2</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out2</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
         <span class="ident">NewOut</span>: <span class="ident">Data</span>,
         <span class="ident">StartOperator</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">NewOut</span><span class="op">&gt;</span>,
         <span class="ident">GetStartOp</span>: <span class="ident">Fn</span>(<span class="ident">BlockId</span>, <span class="ident">BlockId</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">IterationStateLock</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StartOperator</span>,
@@ -519,7 +519,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Key</span>: <span class="ident">DataKey</span>, <span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span> <span class="ident">KeyedStream</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_operator</span><span class="op">&lt;</span><span class="ident">NewOut</span>: <span class="ident">Data</span>, <span class="ident">Op</span>, <span class="ident">GetOp</span><span class="op">&gt;</span>(
         <span class="self">self</span>,

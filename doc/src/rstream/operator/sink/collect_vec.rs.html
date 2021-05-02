@@ -124,7 +124,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span> <span class="ident">Operator</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CollectVecSink</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">PreviousOperators</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">PreviousOperators</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">setup</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">metadata</span>: <span class="ident">ExecutionMetadata</span>) {
         <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">setup</span>(<span class="ident">metadata</span>);
@@ -163,13 +163,13 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span> <span class="ident">Sink</span> <span class="kw">for</span> <span class="ident">CollectVecSink</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span> <span class="kw">where</span>
-    <span class="ident">PreviousOperators</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>
+    <span class="ident">PreviousOperators</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>
 {
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">CollectVecSink</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">PreviousOperators</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">PreviousOperators</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">PreviousOperators</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;CollectVecSink cannot be cloned, max_parallelism should be 1&quot;</span>);
@@ -178,7 +178,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">collect_vec</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StreamOutput</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">StreamOutputRef</span>::<span class="ident">default</span>();

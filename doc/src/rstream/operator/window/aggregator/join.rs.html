@@ -92,14 +92,14 @@
     <span class="ident">KeyedWindowedStream</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span>, <span class="ident">OperatorChain</span>, <span class="ident">JoinElement</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">Out2</span><span class="op">&gt;</span>, <span class="ident">WindowDescr</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">WindowDescr</span>: <span class="ident">WindowDescription</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">JoinElement</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">Out2</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">OperatorChain2</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">right</span>: <span class="ident">KeyedStream</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out2</span>, <span class="ident">OperatorChain2</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">KeyedStream</span><span class="op">&lt;</span><span class="ident">Key</span>, (<span class="ident">Out</span>, <span class="ident">Out2</span>), <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, (<span class="ident">Out</span>, <span class="ident">Out2</span>)<span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out2</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out2</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="comment">// map the left and right streams to the same type</span>
         <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">x</span>)<span class="op">|</span> <span class="ident">JoinElement</span>::<span class="ident">Left</span>(<span class="ident">x</span>));
@@ -108,7 +108,7 @@
         <span class="comment">// concatenate the two streams and apply the window</span>
         <span class="ident">left</span>.<span class="ident">concat</span>(<span class="ident">right</span>)
             .<span class="ident">window</span>(<span class="self">self</span>.<span class="ident">descr</span>)
-            .<span class="ident">add_generic_window_operator</span>(<span class="string">&quot;Join&quot;</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">window</span><span class="op">|</span> {
+            .<span class="ident">add_generic_window_operator</span>(<span class="string">&quot;WindowJoin&quot;</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">window</span><span class="op">|</span> {
                 <span class="comment">// divide the elements coming from the left stream from the elements</span>
                 <span class="comment">// coming from the right stream</span>
                 <span class="kw">let</span> (<span class="ident">left</span>, <span class="ident">right</span>) <span class="op">=</span> <span class="ident">window</span>
@@ -139,14 +139,14 @@
     <span class="ident">WindowedStream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">OperatorChain</span>, <span class="ident">JoinElement</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">Out2</span><span class="op">&gt;</span>, <span class="ident">WindowDescr</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">WindowDescr</span>: <span class="ident">WindowDescription</span><span class="op">&lt;</span>(), <span class="ident">JoinElement</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">Out2</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span>(), <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span>(), <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">OperatorChain2</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">right</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out2</span>, <span class="ident">OperatorChain2</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span>(<span class="ident">Out</span>, <span class="ident">Out2</span>), <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span>(<span class="ident">Out</span>, <span class="ident">Out2</span>)<span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out2</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out2</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="self">self</span>.<span class="ident">inner</span>
             .<span class="ident">join</span>(<span class="ident">right</span>.<span class="ident">max_parallelism</span>(<span class="number">1</span>).<span class="ident">key_by</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()))
