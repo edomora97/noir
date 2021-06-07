@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["replica_coord","Get the coord of the replica the current thread is working on."]]});

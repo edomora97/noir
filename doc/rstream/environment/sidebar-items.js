@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["StreamEnvironment","Streaming environment from which it's possible to register new streams and start the computation."]]});

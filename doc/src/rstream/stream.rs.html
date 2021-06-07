@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../rstream/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rstream/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -266,28 +266,77 @@
 <span id="263">263</span>
 <span id="264">264</span>
 <span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">any</span>::<span class="ident">TypeId</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefCell</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
 
-<span class="kw">use</span> <span class="ident">itertools</span>::<span class="ident">Itertools</span>;
-
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">block</span>::{<span class="ident">BatchMode</span>, <span class="ident">InnerBlock</span>, <span class="ident">NextStrategy</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">block</span>::{<span class="ident">BatchMode</span>, <span class="ident">InnerBlock</span>, <span class="ident">NextStrategy</span>, <span class="ident">SchedulerRequirements</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">environment</span>::<span class="ident">StreamEnvironmentInner</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::{<span class="ident">Data</span>, <span class="ident">EndBlock</span>, <span class="ident">IterationStateLock</span>, <span class="ident">Operator</span>, <span class="ident">WindowDescription</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::{<span class="ident">DataKey</span>, <span class="ident">StartBlock</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">end</span>::<span class="ident">EndBlock</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">iteration</span>::<span class="ident">IterationStateLock</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">window</span>::<span class="ident">WindowDescription</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">DataKey</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">StartBlock</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::{<span class="ident">Data</span>, <span class="ident">ExchangeData</span>, <span class="ident">KeyerFn</span>, <span class="ident">Operator</span>};
 
 <span class="doccomment">/// Identifier of a block in the job graph.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">BlockId</span> <span class="op">=</span> <span class="ident">usize</span>;
 
 <span class="doccomment">/// On keyed streams, this is the type of the items of the stream.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For now it&#39;s just a type alias, maybe downstream it can become a richer struct.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="ident">Key</span>, <span class="ident">Value</span>);
 
 <span class="doccomment">/// A Stream represents a chain of operators that work on a flow of data. The type of the elements</span>
-<span class="doccomment">/// entering the stream is `In`, while the type of the outgoing elements is `Out`.</span>
+<span class="doccomment">/// that is leaving the stream is `Out`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Internally a stream is composed by a chain of blocks, each of which can be seen as a simpler</span>
 <span class="doccomment">/// stream with input and output types.</span>
@@ -306,19 +355,19 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">env</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">StreamEnvironmentInner</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="doccomment">/// A `KeyedStream` is like a set of `Stream`s, each of which partitioned by some `Key`. Internally</span>
+<span class="doccomment">/// A [`KeyedStream`] is like a set of [`Stream`]s, each of which partitioned by some `Key`. Internally</span>
 <span class="doccomment">/// it&#39;s just a stream whose elements are `KeyValue` pairs and the operators behave following the</span>
-<span class="doccomment">/// `KeyedStream` semantics.</span>
+<span class="doccomment">/// [`KeyedStream`] semantics.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The type of the `Key` must be a valid key inside an hashmap.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KeyedStream</span><span class="op">&lt;</span><span class="ident">Key</span>: <span class="ident">DataKey</span>, <span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span>(
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KeyedStream</span><span class="op">&lt;</span><span class="ident">Key</span>: <span class="ident">Data</span>, <span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span>(
     <span class="kw">pub</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span>,
 )
 <span class="kw">where</span>
     <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
-<span class="doccomment">/// A `WindowedStream` is a data stream where elements are divided in multiple groups called</span>
-<span class="doccomment">/// windows. Internally, a `WindowedStream` is just a `KeyedWindowedStream` where each element is</span>
+<span class="doccomment">/// A [`WindowedStream`] is a data stream where elements are divided in multiple groups called</span>
+<span class="doccomment">/// windows. Internally, a [`WindowedStream`] is just a [`KeyedWindowedStream`] where each element is</span>
 <span class="doccomment">/// assigned to the same key `()`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WindowedStream</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span>, <span class="ident">WinOut</span>: <span class="ident">Data</span>, <span class="ident">WinDescr</span><span class="op">&gt;</span>
 <span class="kw">where</span>
@@ -328,7 +377,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">inner</span>: <span class="ident">KeyedWindowedStream</span><span class="op">&lt;</span>(), <span class="ident">Out</span>, <span class="ident">OperatorChain</span>, <span class="ident">WinOut</span>, <span class="ident">WinDescr</span><span class="op">&gt;</span>,
 }
 
-<span class="doccomment">/// A `KeyedWindowedStream` is a data stream partitioned by `Key`, where elements of each partition</span>
+<span class="doccomment">/// A [`KeyedWindowedStream`] is a data stream partitioned by `Key`, where elements of each partition</span>
 <span class="doccomment">/// are divided in groups called windows.</span>
 <span class="doccomment">/// Windows are handled independently for each partition of the stream.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KeyedWindowedStream</span><span class="op">&lt;</span><span class="ident">Key</span>: <span class="ident">DataKey</span>, <span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span>, <span class="ident">WinOut</span>: <span class="ident">Data</span>, <span class="ident">WinDescr</span><span class="op">&gt;</span>
@@ -379,14 +428,16 @@
     <span class="doccomment">/// be an `Operator&lt;()&gt;`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The new block is initialized with a `StartBlock`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_block</span><span class="op">&lt;</span><span class="ident">GetEndOp</span>, <span class="ident">Op</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_block</span><span class="op">&lt;</span><span class="ident">GetEndOp</span>, <span class="ident">Op</span>, <span class="ident">IndexFn</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">get_end_operator</span>: <span class="ident">GetEndOp</span>,
-        <span class="ident">next_strategy</span>: <span class="ident">NextStrategy</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">StartBlock</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span>
+        <span class="ident">next_strategy</span>: <span class="ident">NextStrategy</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">IndexFn</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
+        <span class="ident">IndexFn</span>: <span class="ident">KeyerFn</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">Out</span><span class="op">&gt;</span>,
+        <span class="ident">Out</span>: <span class="ident">ExchangeData</span>,
         <span class="ident">Op</span>: <span class="ident">Operator</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">GetEndOp</span>: <span class="ident">FnOnce</span>(<span class="ident">OperatorChain</span>, <span class="ident">NextStrategy</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>, <span class="ident">BatchMode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Op</span>,
+        <span class="ident">GetEndOp</span>: <span class="ident">FnOnce</span>(<span class="ident">OperatorChain</span>, <span class="ident">NextStrategy</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">IndexFn</span><span class="op">&gt;</span>, <span class="ident">BatchMode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Op</span>,
     {
         <span class="kw">let</span> <span class="ident">batch_mode</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">batch_mode</span>;
         <span class="kw">let</span> <span class="ident">state_lock</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">iteration_state_lock_stack</span>.<span class="ident">clone</span>();
@@ -401,7 +452,7 @@
         <span class="ident">scheduler</span>.<span class="ident">connect_blocks</span>(<span class="ident">old_id</span>, <span class="ident">new_id</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>());
         <span class="ident">drop</span>(<span class="ident">env</span>);
 
-        <span class="kw">let</span> <span class="ident">start_block</span> <span class="op">=</span> <span class="ident">StartBlock</span>::<span class="ident">new</span>(<span class="ident">old_id</span>, <span class="ident">state_lock</span>.<span class="ident">last</span>().<span class="ident">cloned</span>());
+        <span class="kw">let</span> <span class="ident">start_block</span> <span class="op">=</span> <span class="ident">StartBlock</span>::<span class="ident">single</span>(<span class="ident">old_id</span>, <span class="ident">state_lock</span>.<span class="ident">last</span>().<span class="ident">cloned</span>());
         <span class="ident">Stream</span> {
             <span class="ident">block</span>: <span class="ident">InnerBlock</span>::<span class="ident">new</span>(<span class="ident">new_id</span>, <span class="ident">start_block</span>, <span class="ident">batch_mode</span>, <span class="ident">state_lock</span>),
             <span class="ident">env</span>: <span class="ident">old_stream</span>.<span class="ident">env</span>,
@@ -419,22 +470,41 @@
     <span class="doccomment">/// The start operator of the new block must support multiple inputs: the provided function</span>
     <span class="doccomment">/// will be called with the ids of the 2 input blocks and should return the new start operator</span>
     <span class="doccomment">/// of the new block.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_y_connection</span><span class="op">&lt;</span><span class="ident">Out2</span>, <span class="ident">OperatorChain2</span>, <span class="ident">NewOut</span>, <span class="ident">StartOperator</span>, <span class="ident">GetStartOp</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_y_connection</span><span class="op">&lt;</span>
+        <span class="ident">Out2</span>,
+        <span class="ident">OperatorChain2</span>,
+        <span class="ident">NewOut</span>,
+        <span class="ident">StartOperator</span>,
+        <span class="ident">GetStartOp</span>,
+        <span class="ident">IndexFn1</span>,
+        <span class="ident">IndexFn2</span>,
+    <span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">oth</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out2</span>, <span class="ident">OperatorChain2</span><span class="op">&gt;</span>,
         <span class="ident">get_start_operator</span>: <span class="ident">GetStartOp</span>,
+        <span class="ident">next_strategy1</span>: <span class="ident">NextStrategy</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">IndexFn1</span><span class="op">&gt;</span>,
+        <span class="ident">next_strategy2</span>: <span class="ident">NextStrategy</span><span class="op">&lt;</span><span class="ident">Out2</span>, <span class="ident">IndexFn2</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">NewOut</span>, <span class="ident">StartOperator</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">Out2</span>: <span class="ident">Data</span>,
+        <span class="ident">Out</span>: <span class="ident">ExchangeData</span>,
+        <span class="ident">Out2</span>: <span class="ident">ExchangeData</span>,
+        <span class="ident">IndexFn1</span>: <span class="ident">KeyerFn</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">Out</span><span class="op">&gt;</span>,
+        <span class="ident">IndexFn2</span>: <span class="ident">KeyerFn</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">Out2</span><span class="op">&gt;</span>,
         <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out2</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
         <span class="ident">NewOut</span>: <span class="ident">Data</span>,
         <span class="ident">StartOperator</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">NewOut</span><span class="op">&gt;</span>,
-        <span class="ident">GetStartOp</span>: <span class="ident">Fn</span>(<span class="ident">BlockId</span>, <span class="ident">BlockId</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">IterationStateLock</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StartOperator</span>,
+        <span class="ident">GetStartOp</span>:
+            <span class="ident">FnOnce</span>(<span class="ident">BlockId</span>, <span class="ident">BlockId</span>, <span class="ident">bool</span>, <span class="ident">bool</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">IterationStateLock</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StartOperator</span>,
     {
         <span class="kw">let</span> <span class="ident">batch_mode</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">batch_mode</span>;
+        <span class="kw">let</span> <span class="ident">is_only_one1</span> <span class="op">=</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">next_strategy1</span>, <span class="ident">NextStrategy</span>::<span class="ident">OnlyOne</span>);
+        <span class="kw">let</span> <span class="ident">is_only_one2</span> <span class="op">=</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">next_strategy2</span>, <span class="ident">NextStrategy</span>::<span class="ident">OnlyOne</span>);
         <span class="kw">let</span> <span class="ident">scheduler_requirements1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">scheduler_requirements</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">scheduler_requirements2</span> <span class="op">=</span> <span class="ident">oth</span>.<span class="ident">block</span>.<span class="ident">scheduler_requirements</span>.<span class="ident">clone</span>();
-        <span class="kw">if</span> <span class="ident">scheduler_requirements1</span>.<span class="ident">max_parallelism</span> <span class="op">!</span><span class="op">=</span> <span class="ident">scheduler_requirements2</span>.<span class="ident">max_parallelism</span> {
+        <span class="kw">if</span> <span class="ident">is_only_one1</span>
+            <span class="op">&amp;&amp;</span> <span class="ident">is_only_one2</span>
+            <span class="op">&amp;&amp;</span> <span class="ident">scheduler_requirements1</span>.<span class="ident">max_parallelism</span> <span class="op">!</span><span class="op">=</span> <span class="ident">scheduler_requirements2</span>.<span class="ident">max_parallelism</span>
+        {
             <span class="macro">panic</span><span class="macro">!</span>(
                 <span class="string">&quot;The parallelism of the 2 blocks coming inside a Y connection must be equal. \
                 On the left ({}) is {:?}, on the right ({}) is {:?}&quot;</span>,
@@ -444,22 +514,31 @@
                 <span class="ident">scheduler_requirements2</span>.<span class="ident">max_parallelism</span>
             );
         }
-        <span class="kw">let</span> <span class="ident">state_lock1</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">block</span>.<span class="ident">iteration_state_lock_stack</span>;
-        <span class="kw">let</span> <span class="ident">state_lock2</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">oth</span>.<span class="ident">block</span>.<span class="ident">iteration_state_lock_stack</span>;
-        <span class="kw">if</span> <span class="ident">state_lock1</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">Arc</span>::<span class="ident">as_ptr</span>(<span class="ident">s</span>)).<span class="ident">collect_vec</span>()
-            <span class="op">!</span><span class="op">=</span> <span class="ident">state_lock2</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">Arc</span>::<span class="ident">as_ptr</span>(<span class="ident">s</span>)).<span class="ident">collect_vec</span>()
-        {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;The state locks of the 2 blocks coming inside a Y connection must be equal&quot;</span>);
-        }
-        <span class="kw">let</span> <span class="ident">state_lock</span> <span class="op">=</span> <span class="ident">state_lock1</span>.<span class="ident">clone</span>();
+
+        <span class="kw">let</span> <span class="ident">iteration_stack1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">iteration_stack</span>();
+        <span class="kw">let</span> <span class="ident">iteration_stack2</span> <span class="op">=</span> <span class="ident">oth</span>.<span class="ident">block</span>.<span class="ident">iteration_stack</span>();
+        <span class="kw">let</span> (<span class="ident">state_lock</span>, <span class="ident">left_cache</span>, <span class="ident">right_cache</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">iteration_stack1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">iteration_stack2</span> {
+            (<span class="self">self</span>.<span class="ident">block</span>.<span class="ident">iteration_state_lock_stack</span>.<span class="ident">clone</span>(), <span class="bool-val">false</span>, <span class="bool-val">false</span>)
+        } <span class="kw">else</span> {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">iteration_stack1</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">iteration_stack2</span>.<span class="ident">is_empty</span>() {
+                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Side inputs are supported only if one of the streams is coming from outside any iteration&quot;</span>);
+            }
+            <span class="kw">if</span> <span class="ident">iteration_stack1</span>.<span class="ident">is_empty</span>() {
+                <span class="comment">// self is the side input, cache it</span>
+                (<span class="ident">oth</span>.<span class="ident">block</span>.<span class="ident">iteration_state_lock_stack</span>.<span class="ident">clone</span>(), <span class="bool-val">true</span>, <span class="bool-val">false</span>)
+            } <span class="kw">else</span> {
+                <span class="comment">// oth is the side input, cache it</span>
+                (<span class="self">self</span>.<span class="ident">block</span>.<span class="ident">iteration_state_lock_stack</span>.<span class="ident">clone</span>(), <span class="bool-val">false</span>, <span class="bool-val">true</span>)
+            }
+        };
 
         <span class="comment">// close previous blocks</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">old_stream1</span> <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">EndBlock</span>::<span class="ident">new</span>(<span class="ident">prev</span>, <span class="ident">NextStrategy</span>::<span class="ident">OnlyOne</span>, <span class="ident">batch_mode</span>));
+            <span class="self">self</span>.<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">EndBlock</span>::<span class="ident">new</span>(<span class="ident">prev</span>, <span class="ident">next_strategy1</span>, <span class="ident">batch_mode</span>));
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">old_stream2</span> <span class="op">=</span>
-            <span class="ident">oth</span>.<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">EndBlock</span>::<span class="ident">new</span>(<span class="ident">prev</span>, <span class="ident">NextStrategy</span>::<span class="ident">OnlyOne</span>, <span class="ident">batch_mode</span>));
-        <span class="ident">old_stream1</span>.<span class="ident">block</span>.<span class="ident">is_only_one_strategy</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="ident">old_stream2</span>.<span class="ident">block</span>.<span class="ident">is_only_one_strategy</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="ident">oth</span>.<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">EndBlock</span>::<span class="ident">new</span>(<span class="ident">prev</span>, <span class="ident">next_strategy2</span>, <span class="ident">batch_mode</span>));
+        <span class="ident">old_stream1</span>.<span class="ident">block</span>.<span class="ident">is_only_one_strategy</span> <span class="op">=</span> <span class="ident">is_only_one1</span>;
+        <span class="ident">old_stream2</span>.<span class="ident">block</span>.<span class="ident">is_only_one_strategy</span> <span class="op">=</span> <span class="ident">is_only_one2</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">old_stream1</span>.<span class="ident">env</span>.<span class="ident">borrow_mut</span>();
         <span class="kw">let</span> <span class="ident">old_id1</span> <span class="op">=</span> <span class="ident">old_stream1</span>.<span class="ident">block</span>.<span class="ident">id</span>;
@@ -477,14 +556,25 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_stream</span> <span class="op">=</span> <span class="ident">Stream</span> {
             <span class="ident">block</span>: <span class="ident">InnerBlock</span>::<span class="ident">new</span>(
                 <span class="ident">new_id</span>,
-                <span class="ident">get_start_operator</span>(<span class="ident">old_id1</span>, <span class="ident">old_id2</span>, <span class="ident">state_lock</span>.<span class="ident">last</span>().<span class="ident">cloned</span>()),
+                <span class="ident">get_start_operator</span>(
+                    <span class="ident">old_id1</span>,
+                    <span class="ident">old_id2</span>,
+                    <span class="ident">left_cache</span>,
+                    <span class="ident">right_cache</span>,
+                    <span class="ident">state_lock</span>.<span class="ident">last</span>().<span class="ident">cloned</span>(),
+                ),
                 <span class="ident">batch_mode</span>,
                 <span class="ident">state_lock</span>,
             ),
             <span class="ident">env</span>: <span class="ident">old_stream1</span>.<span class="ident">env</span>,
         };
-        <span class="comment">// make sure the new block has the same parallelism of the previous one</span>
-        <span class="ident">new_stream</span>.<span class="ident">block</span>.<span class="ident">scheduler_requirements</span> <span class="op">=</span> <span class="ident">scheduler_requirements1</span>;
+        <span class="comment">// make sure the new block has the same parallelism of the previous one with OnlyOne</span>
+        <span class="comment">// strategy</span>
+        <span class="ident">new_stream</span>.<span class="ident">block</span>.<span class="ident">scheduler_requirements</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">is_only_one1</span>, <span class="ident">is_only_one2</span>) {
+            (<span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">scheduler_requirements1</span>,
+            (<span class="kw">_</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">scheduler_requirements2</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SchedulerRequirements</span>::<span class="ident">default</span>(),
+        };
         <span class="ident">new_stream</span>
     }
 
@@ -533,5 +623,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rstream"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rstream" data-search-js="../../search-index.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/test.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>test.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/test.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>test.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../rstream/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rstream/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -286,13 +286,16 @@
 <span id="283">283</span>
 <span id="284">284</span>
 <span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">VecDeque</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicU16</span>, <span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">mpsc</span>::<span class="ident">RecvTimeoutError</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+
+<span class="kw">use</span> <span class="ident">itertools</span>::{<span class="ident">process_results</span>, <span class="ident">Itertools</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">block</span>::{<span class="ident">BlockStructure</span>, <span class="ident">OperatorStructure</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">config</span>::{<span class="ident">EnvironmentConfig</span>, <span class="ident">ExecutionRuntime</span>, <span class="ident">RemoteHostConfig</span>, <span class="ident">RemoteRuntimeConfig</span>};
@@ -300,19 +303,15 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">source</span>::<span class="ident">Source</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::{<span class="ident">Data</span>, <span class="ident">Operator</span>, <span class="ident">StreamElement</span>, <span class="ident">Timestamp</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">scheduler</span>::<span class="ident">ExecutionMetadata</span>;
-<span class="kw">use</span> <span class="ident">itertools</span>::{<span class="ident">process_results</span>, <span class="ident">Itertools</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">mpsc</span>::<span class="ident">RecvTimeoutError</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 
 <span class="doccomment">/// Port from which the integration tests start allocating sockets for the remote runtime.</span>
 <span class="kw">const</span> <span class="ident">TEST_BASE_PORT</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">17666</span>;
-<span class="doccomment">/// How many ports to allocate for each host.</span>
-<span class="kw">const</span> <span class="ident">PORTS_PER_HOST</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">100</span>;
 
 <span class="macro">lazy_static</span><span class="macro">!</span> {
-    <span class="doccomment">/// The first available port for the next host.</span>
-    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">PORT_OFFSET</span>: <span class="ident">AtomicU16</span> <span class="op">=</span> <span class="ident">AtomicU16</span>::<span class="ident">new</span>(<span class="number">0</span>);
+    <span class="doccomment">/// The index of the current test.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// It will be used to generate unique local IP addresses for each test.</span>
+    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">TEST_INDEX</span>: <span class="ident">AtomicU16</span> <span class="op">=</span> <span class="ident">AtomicU16</span>::<span class="ident">new</span>(<span class="number">0</span>);
 }
 
 <span class="doccomment">/// Helper functions for running the integration tests.</span>
@@ -398,17 +397,14 @@
     ) {
         <span class="self">Self</span>::<span class="ident">setup</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hosts</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">num_hosts</span> {
-            <span class="comment">// When using directly the `AtomicU16` counter to assign ports, when the counter</span>
-            <span class="comment">// overflows some tests try to bind very small ports, failing.</span>
-            <span class="comment">// Instead, we use the counter to encode the offset from `TEST_BASE_PORT`.</span>
-            <span class="comment">// We ignore the most significant bit of `PORT_OFFSET`, so that `PORT_OFFSET` is always</span>
-            <span class="comment">// in the range 0..2^15.</span>
-            <span class="kw">let</span> <span class="ident">base_port</span> <span class="op">=</span>
-                <span class="ident">TEST_BASE_PORT</span> <span class="op">+</span> (<span class="ident">PORT_OFFSET</span>.<span class="ident">fetch_add</span>(<span class="ident">PORTS_PER_HOST</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) <span class="op">&amp;</span> <span class="number">0x7fff</span>);
+        <span class="kw">for</span> <span class="ident">host_id</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">num_hosts</span> {
+            <span class="kw">let</span> <span class="ident">test_id</span> <span class="op">=</span> <span class="ident">TEST_INDEX</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) <span class="op">+</span> <span class="number">1</span>;
+            <span class="kw">let</span> <span class="ident">high_part</span> <span class="op">=</span> (<span class="ident">test_id</span> <span class="op">&amp;</span> <span class="number">0xff00</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>;
+            <span class="kw">let</span> <span class="ident">low_part</span> <span class="op">=</span> <span class="ident">test_id</span> <span class="op">&amp;</span> <span class="number">0xff</span>;
+            <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;127.{}.{}.{}&quot;</span>, <span class="ident">high_part</span>, <span class="ident">low_part</span>, <span class="ident">host_id</span>);
             <span class="ident">hosts</span>.<span class="ident">push</span>(<span class="ident">RemoteHostConfig</span> {
-                <span class="ident">address</span>: <span class="string">&quot;localhost&quot;</span>.<span class="ident">to_string</span>(),
-                <span class="ident">base_port</span>,
+                <span class="ident">address</span>,
+                <span class="ident">base_port</span>: <span class="ident">TEST_BASE_PORT</span>,
                 <span class="ident">num_cores</span>: <span class="ident">cores_per_host</span>,
                 <span class="ident">ssh</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
                 <span class="ident">perf_path</span>: <span class="prelude-val">None</span>,
@@ -577,5 +573,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rstream"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rstream" data-search-js="../../search-index.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
