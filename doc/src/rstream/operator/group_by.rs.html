@@ -25,6 +25,28 @@
 <span id="22">22</span>
 <span id="23">23</span>
 <span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">block</span>::<span class="ident">NextStrategy</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">end</span>::<span class="ident">EndBlock</span>;
@@ -36,6 +58,28 @@
 <span class="kw">where</span>
     <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
+    <span class="doccomment">/// Given a stream, make a [`KeyedStream`] partitioning the values according to a key generated</span>
+    <span class="doccomment">/// by the `keyer` function provided.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The returned [`KeyedStream`] is partitioned by key, and all the operators added to it will</span>
+    <span class="doccomment">/// be evaluated _after_ the network shuffle. Therefore all the items are sent to the network</span>
+    <span class="doccomment">/// (if their destination is not the local host). In many cases this behaviour can be avoided by</span>
+    <span class="doccomment">/// using the associative variant of the operators (e.g. [`Stream::group_by_reduce`],</span>
+    <span class="doccomment">/// [`Stream::group_by_sum`], ...).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: the keys are not sent to the network, they are built on the sending side, and</span>
+    <span class="doccomment">/// rebuilt on the receiving side.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will split the current block.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s = env.stream(IteratorSource::new((0..5)));</span>
+    <span class="doccomment">/// let keyed = s.group_by(|&amp;n| n % 2); // partition even and odd elements</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">group_by</span><span class="op">&lt;</span><span class="ident">Key</span>: <span class="ident">DataKey</span>, <span class="ident">Keyer</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">keyer</span>: <span class="ident">Keyer</span>,

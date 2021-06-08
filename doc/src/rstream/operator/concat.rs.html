@@ -129,6 +129,8 @@
 <span id="126">126</span>
 <span id="127">127</span>
 <span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -165,7 +167,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// env.execute();</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(res.get().unwrap(), (0..20).collect::&lt;Vec&lt;_&gt;&gt;());</span>
+    <span class="doccomment">/// let mut res = res.get().unwrap();</span>
+    <span class="doccomment">/// res.sort_unstable();</span>
+    <span class="doccomment">/// assert_eq!(res, (0..20).collect::&lt;Vec&lt;_&gt;&gt;());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat</span><span class="op">&lt;</span><span class="ident">OperatorChain2</span><span class="op">&gt;</span>(
         <span class="self">self</span>,

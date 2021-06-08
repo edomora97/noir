@@ -292,6 +292,83 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">iter</span>::<span class="ident">Iterator</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">hash_map</span>::{<span class="ident">DefaultHasher</span>, <span class="ident">Entry</span>};
@@ -443,6 +520,46 @@
 <span class="kw">where</span>
     <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
+    <span class="doccomment">/// Perform the folding operation separately for each key.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is equivalent of partitioning the stream using the `keyer` function, and then applying</span>
+    <span class="doccomment">/// [`Stream::fold_assoc`] to each partition separately.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note however that there is a difference between `stream.group_by(keyer).fold(...)` and</span>
+    <span class="doccomment">/// `stream.group_by_fold(keyer, ...)`. The first performs the network shuffle of every item in</span>
+    <span class="doccomment">/// the stream, and **later** performs the folding (i.e. nearly all the elements will be sent to</span>
+    <span class="doccomment">/// the network). The latter avoids sending the items by performing first a local reduction on</span>
+    <span class="doccomment">/// each host, and then send only the locally folded results (i.e. one message per replica, per</span>
+    <span class="doccomment">/// key); then the global step is performed aggregating the results.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The resulting stream will still be keyed and will contain only a single message per key (the</span>
+    <span class="doccomment">/// final result).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that the output type may be different from the input type, therefore requireing</span>
+    <span class="doccomment">/// different function for the aggregation. Consider using [`Stream::group_by_reduce`] if the</span>
+    <span class="doccomment">/// output type is the same as the input type.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will retain all the messages of the stream and emit the values only</span>
+    <span class="doccomment">/// when the stream ends. Therefore this is not properly _streaming_.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will split the current block.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s = env.stream(IteratorSource::new((0..5)));</span>
+    <span class="doccomment">/// let res = s</span>
+    <span class="doccomment">///     .group_by_fold(|&amp;n| n % 2, 0, |acc, value| *acc += value, |acc, value| *acc += value)</span>
+    <span class="doccomment">///     .collect_vec();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// env.execute();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut res = res.get().unwrap();</span>
+    <span class="doccomment">/// res.sort_unstable();</span>
+    <span class="doccomment">/// assert_eq!(res, vec![(0, 0 + 2 + 4), (1, 1 + 3)]);</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">group_by_fold</span><span class="op">&lt;</span><span class="ident">Key</span>: <span class="ident">ExchangeDataKey</span>, <span class="ident">NewOut</span>: <span class="ident">ExchangeData</span>, <span class="ident">Keyer</span>, <span class="ident">Local</span>, <span class="ident">Global</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">keyer</span>: <span class="ident">Keyer</span>,
@@ -483,6 +600,43 @@
 <span class="kw">where</span>
     <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
+    <span class="doccomment">/// Perform the folding operation separately for each key.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that there is a difference between `stream.group_by(keyer).fold(...)` and</span>
+    <span class="doccomment">/// `stream.group_by_fold(keyer, ...)`. The first performs the network shuffle of every item in</span>
+    <span class="doccomment">/// the stream, and **later** performs the folding (i.e. nearly all the elements will be sent to</span>
+    <span class="doccomment">/// the network). The latter avoids sending the items by performing first a local reduction on</span>
+    <span class="doccomment">/// each host, and then send only the locally folded results (i.e. one message per replica, per</span>
+    <span class="doccomment">/// key); then the global step is performed aggregating the results.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The resulting stream will still be keyed and will contain only a single message per key (the</span>
+    <span class="doccomment">/// final result).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that the output type may be different from the input type. Consider using</span>
+    <span class="doccomment">/// [`KeyedStream::reduce`] if the output type is the same as the input type.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will retain all the messages of the stream and emit the values only</span>
+    <span class="doccomment">/// when the stream ends. Therefore this is not properly _streaming_.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will split the current block.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s = env.stream(IteratorSource::new((0..5))).group_by(|&amp;n| n % 2);</span>
+    <span class="doccomment">/// let res = s</span>
+    <span class="doccomment">///     .fold(0, |acc, value| *acc += value)</span>
+    <span class="doccomment">///     .collect_vec();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// env.execute();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut res = res.get().unwrap();</span>
+    <span class="doccomment">/// res.sort_unstable();</span>
+    <span class="doccomment">/// assert_eq!(res, vec![(0, 0 + 2 + 4), (1, 1 + 3)]);</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">NewOut</span>: <span class="ident">Data</span>, <span class="ident">F</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">init</span>: <span class="ident">NewOut</span>,

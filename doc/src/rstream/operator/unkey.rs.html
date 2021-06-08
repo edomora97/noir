@@ -21,6 +21,41 @@
 <span id="18">18</span>
 <span id="19">19</span>
 <span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::{<span class="ident">Data</span>, <span class="ident">DataKey</span>, <span class="ident">Operator</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">stream</span>::{<span class="ident">KeyValue</span>, <span class="ident">KeyedStream</span>, <span class="ident">Stream</span>};
@@ -29,6 +64,23 @@
 <span class="kw">where</span>
     <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
+    <span class="doccomment">/// Make this [`KeyedStream`] a normal [`Stream`] of key-value pairs.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let stream = env.stream(IteratorSource::new((0..4))).group_by(|&amp;n| n % 2);</span>
+    <span class="doccomment">/// let res = stream.unkey().collect_vec();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// env.execute();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut res = res.get().unwrap();</span>
+    <span class="doccomment">/// res.sort_unstable(); // the output order is nondeterministic</span>
+    <span class="doccomment">/// assert_eq!(res, vec![(0, 0), (0, 2), (1, 1), (1, 3)]);</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unkey</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>
     }
@@ -38,6 +90,24 @@
 <span class="kw">where</span>
     <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
+    <span class="doccomment">/// Forget about the key of this [`KeyedStream`] and return a [`Stream`] containing just the</span>
+    <span class="doccomment">/// values.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let stream = env.stream(IteratorSource::new((0..4))).group_by(|&amp;n| n % 2);</span>
+    <span class="doccomment">/// let res = stream.drop_key().collect_vec();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// env.execute();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut res = res.get().unwrap();</span>
+    <span class="doccomment">/// res.sort_unstable(); // the output order is nondeterministic</span>
+    <span class="doccomment">/// assert_eq!(res, (0..4).collect::&lt;Vec&lt;_&gt;&gt;());</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">drop_key</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">_k</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="ident">v</span>)
     }

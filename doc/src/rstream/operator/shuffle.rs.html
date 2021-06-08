@@ -14,6 +14,20 @@
 <span id="11">11</span>
 <span id="12">12</span>
 <span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">block</span>::<span class="ident">NextStrategy</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">end</span>::<span class="ident">EndBlock</span>;
@@ -24,6 +38,20 @@
 <span class="kw">where</span>
     <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
+    <span class="doccomment">/// Perform a network shuffle sending the messages to a random replica.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This can be useful if for some reason the load is very unbalanced (e.g. after a very</span>
+    <span class="doccomment">/// unbalanced [`Stream::group_by`]).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s = env.stream(IteratorSource::new((0..5)));</span>
+    <span class="doccomment">/// let res = s.shuffle();</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shuffle</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">add_block</span>(<span class="ident">EndBlock</span>::<span class="ident">new</span>, <span class="ident">NextStrategy</span>::<span class="ident">random</span>())
     }
