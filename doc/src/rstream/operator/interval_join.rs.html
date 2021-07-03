@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/operator/interval_join.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>interval_join.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rstream/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rstream/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -263,17 +263,17 @@
 <span id="260">260</span>
 <span id="261">261</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">VecDeque</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+<span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">HashMap</span>, <span class="ident">VecDeque</span>};
+<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">block</span>::{<span class="ident">BlockStructure</span>, <span class="ident">OperatorStructure</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">concat</span>::<span class="ident">ConcatElement</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">reorder</span>::<span class="ident">Reorder</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::{
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::block</span>::{<span class="ident">BlockStructure</span>, <span class="ident">OperatorStructure</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::concat::ConcatElement</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::reorder::Reorder</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator</span>::{
     <span class="ident">timestamp_max</span>, <span class="ident">ExchangeData</span>, <span class="ident">ExchangeDataKey</span>, <span class="ident">Operator</span>, <span class="ident">StreamElement</span>, <span class="ident">Timestamp</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">scheduler</span>::<span class="ident">ExecutionMetadata</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">stream</span>::{<span class="ident">KeyValue</span>, <span class="ident">KeyedStream</span>, <span class="ident">Stream</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::scheduler::ExecutionMetadata</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::stream</span>::{<span class="ident">KeyValue</span>, <span class="ident">KeyedStream</span>, <span class="ident">Stream</span>};
 
 <span class="kw">type</span> <span class="ident">OutputElement</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span>, <span class="ident">Out2</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, (<span class="ident">Out</span>, <span class="ident">Out2</span>)<span class="op">&gt;</span>;
 
@@ -319,10 +319,10 @@
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">prev</span>: <span class="ident">OperatorChain</span>, <span class="ident">lower_bound</span>: <span class="ident">Duration</span>, <span class="ident">upper_bound</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">prev</span>,
-            <span class="ident">left</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">right</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">buffer</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">last_seen</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">left</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">right</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">buffer</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">last_seen</span>: <span class="ident">Default::default</span>(),
             <span class="ident">upper_bound</span>,
             <span class="ident">lower_bound</span>,
             <span class="ident">received_restart</span>: <span class="bool-val">false</span>,
@@ -335,7 +335,7 @@
             <span class="comment">// find lower and upper limits of the interval</span>
             <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <span class="ident">left_ts</span>
                 .<span class="ident">checked_sub</span>(<span class="self">self</span>.<span class="ident">lower_bound</span>)
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Duration</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>));
+                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Duration::new</span>(<span class="number">0</span>, <span class="number">0</span>));
             <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="ident">left_ts</span>
                 .<span class="ident">checked_add</span>(<span class="self">self</span>.<span class="ident">upper_bound</span>)
                 .<span class="ident">unwrap_or_else</span>(<span class="ident">timestamp_max</span>);
@@ -399,50 +399,50 @@
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StreamElement</span><span class="op">&lt;</span>(<span class="ident">Key</span>, (<span class="ident">Out</span>, <span class="ident">Out2</span>))<span class="op">&gt;</span> {
         <span class="kw">while</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">is_empty</span>() {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">received_restart</span> {
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">left</span>.<span class="ident">is_empty</span>());
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">right</span>.<span class="ident">is_empty</span>());
+                <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">left</span>.<span class="ident">is_empty</span>());
+                <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">right</span>.<span class="ident">is_empty</span>());
 
                 <span class="self">self</span>.<span class="ident">received_restart</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                <span class="self">self</span>.<span class="ident">last_seen</span> <span class="op">=</span> <span class="ident">Default</span>::<span class="ident">default</span>();
+                <span class="self">self</span>.<span class="ident">last_seen</span> <span class="op">=</span> <span class="ident">Default::default</span>();
 
-                <span class="kw">return</span> <span class="ident">StreamElement</span>::<span class="ident">FlushAndRestart</span>;
+                <span class="kw">return</span> <span class="ident">StreamElement::FlushAndRestart</span>;
             }
 
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">next</span>() {
-                <span class="ident">StreamElement</span>::<span class="ident">Timestamped</span>((<span class="ident">key</span>, <span class="ident">item</span>), <span class="ident">ts</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ts</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">last_seen</span>);
+                <span class="ident">StreamElement::Timestamped</span>((<span class="ident">key</span>, <span class="ident">item</span>), <span class="ident">ts</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="macro">assert!</span>(<span class="ident">ts</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">last_seen</span>);
                     <span class="self">self</span>.<span class="ident">last_seen</span> <span class="op">=</span> <span class="ident">ts</span>;
                     <span class="kw">match</span> <span class="ident">item</span> {
-                        <span class="ident">ConcatElement</span>::<span class="ident">Left</span>(<span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">left</span>.<span class="ident">push_back</span>((<span class="ident">ts</span>, (<span class="ident">key</span>, <span class="ident">item</span>))),
-                        <span class="ident">ConcatElement</span>::<span class="ident">Right</span>(<span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">ConcatElement::Left</span>(<span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">left</span>.<span class="ident">push_back</span>((<span class="ident">ts</span>, (<span class="ident">key</span>, <span class="ident">item</span>))),
+                        <span class="ident">ConcatElement::Right</span>(<span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="self">self</span>.<span class="ident">right</span>.<span class="ident">entry</span>(<span class="ident">key</span>).<span class="ident">or_default</span>().<span class="ident">push_back</span>((<span class="ident">ts</span>, <span class="ident">item</span>))
                         }
                     }
                 }
-                <span class="ident">StreamElement</span>::<span class="ident">Watermark</span>(<span class="ident">ts</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ts</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">last_seen</span>);
+                <span class="ident">StreamElement::Watermark</span>(<span class="ident">ts</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="macro">assert!</span>(<span class="ident">ts</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">last_seen</span>);
                     <span class="self">self</span>.<span class="ident">last_seen</span> <span class="op">=</span> <span class="ident">ts</span>;
                 }
-                <span class="ident">StreamElement</span>::<span class="ident">FlushAndRestart</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">StreamElement::FlushAndRestart</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">received_restart</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
-                <span class="ident">StreamElement</span>::<span class="ident">Item</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Interval Join only supports timestamped streams&quot;</span>),
-                <span class="ident">StreamElement</span>::<span class="ident">FlushBatch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">StreamElement</span>::<span class="ident">FlushBatch</span>,
-                <span class="ident">StreamElement</span>::<span class="ident">Terminate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">StreamElement</span>::<span class="ident">Terminate</span>,
+                <span class="ident">StreamElement::Item</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Interval Join only supports timestamped streams&quot;</span>),
+                <span class="ident">StreamElement::FlushBatch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">StreamElement::FlushBatch</span>,
+                <span class="ident">StreamElement::Terminate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">StreamElement::Terminate</span>,
             }
 
             <span class="self">self</span>.<span class="ident">advance</span>();
         }
 
         <span class="kw">let</span> (<span class="ident">ts</span>, <span class="ident">item</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">pop_front</span>().<span class="ident">unwrap</span>();
-        <span class="ident">StreamElement</span>::<span class="ident">Timestamped</span>(<span class="ident">item</span>, <span class="ident">ts</span>)
+        <span class="ident">StreamElement::Timestamped</span>(<span class="ident">item</span>, <span class="ident">ts</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-        <span class="macro">format</span><span class="macro">!</span>(
+        <span class="macro">format!</span>(
             <span class="string">&quot;{} -&gt; IntervalJoin&lt;{}, {:?}, {:?}&gt;&quot;</span>,
             <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">to_string</span>(),
-            <span class="ident">std</span>::<span class="ident">any</span>::<span class="ident">type_name</span>::<span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, (<span class="ident">Out</span>, <span class="ident">Out2</span>)<span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, (<span class="ident">Out</span>, <span class="ident">Out2</span>)<span class="op">&gt;</span><span class="op">&gt;</span>(),
             <span class="self">self</span>.<span class="ident">lower_bound</span>,
             <span class="self">self</span>.<span class="ident">upper_bound</span>,
         )
@@ -451,7 +451,7 @@
     <span class="kw">fn</span> <span class="ident">structure</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BlockStructure</span> {
         <span class="self">self</span>.<span class="ident">prev</span>
             .<span class="ident">structure</span>()
-            .<span class="ident">add_operator</span>(<span class="ident">OperatorStructure</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, (<span class="ident">Out</span>, <span class="ident">Out2</span>)<span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(
+            .<span class="ident">add_operator</span>(<span class="ident">OperatorStructure::new</span>::<span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, (<span class="ident">Out</span>, <span class="ident">Out2</span>)<span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(
                 <span class="string">&quot;IntervalJoin&quot;</span>,
             ))
     }
@@ -488,8 +488,8 @@
         <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">right</span>.<span class="ident">max_parallelism</span>(<span class="number">1</span>);
         <span class="ident">left</span>.<span class="ident">map_concat</span>(<span class="ident">right</span>)
             .<span class="ident">key_by</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
-            .<span class="ident">add_operator</span>(<span class="ident">Reorder</span>::<span class="ident">new</span>)
-            .<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">IntervalJoin</span>::<span class="ident">new</span>(<span class="ident">prev</span>, <span class="ident">lower_bound</span>, <span class="ident">upper_bound</span>))
+            .<span class="ident">add_operator</span>(<span class="ident">Reorder::new</span>)
+            .<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">IntervalJoin::new</span>(<span class="ident">prev</span>, <span class="ident">lower_bound</span>, <span class="ident">upper_bound</span>))
             .<span class="ident">drop_key</span>()
     }
 }
@@ -520,10 +520,10 @@
         <span class="ident">OperatorChain2</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out2</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="self">self</span>.<span class="ident">map_concat</span>(<span class="ident">right</span>)
-            .<span class="ident">add_operator</span>(<span class="ident">Reorder</span>::<span class="ident">new</span>)
-            .<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">IntervalJoin</span>::<span class="ident">new</span>(<span class="ident">prev</span>, <span class="ident">lower_bound</span>, <span class="ident">upper_bound</span>))
+            .<span class="ident">add_operator</span>(<span class="ident">Reorder::new</span>)
+            .<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">IntervalJoin::new</span>(<span class="ident">prev</span>, <span class="ident">lower_bound</span>, <span class="ident">upper_bound</span>))
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rstream" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rstream" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

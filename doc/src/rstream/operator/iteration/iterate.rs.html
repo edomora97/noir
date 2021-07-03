@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/operator/iteration/iterate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>iterate.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../rstream/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../rstream/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -401,27 +401,78 @@
 <span id="398">398</span>
 <span id="399">399</span>
 <span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">any</span>::<span class="ident">TypeId</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">VecDeque</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+<span class="kw">use</span> <span class="ident">std::any::TypeId</span>;
+<span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
+<span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>};
+<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">block</span>::{<span class="ident">BlockStructure</span>, <span class="ident">Connection</span>, <span class="ident">NextStrategy</span>, <span class="ident">OperatorReceiver</span>, <span class="ident">OperatorStructure</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">environment</span>::<span class="ident">StreamEnvironmentInner</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">network</span>::{<span class="ident">Coord</span>, <span class="ident">NetworkMessage</span>, <span class="ident">NetworkReceiver</span>, <span class="ident">NetworkSender</span>, <span class="ident">ReceiverEndpoint</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">end</span>::<span class="ident">EndBlock</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">iteration</span>::<span class="ident">iteration_end</span>::<span class="ident">IterationEndBlock</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">iteration</span>::<span class="ident">leader</span>::<span class="ident">IterationLeader</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">iteration</span>::<span class="ident">state_handler</span>::<span class="ident">IterationStateHandler</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">iteration</span>::{<span class="ident">IterationStateHandle</span>, <span class="ident">IterationStateLock</span>, <span class="ident">NewIterationState</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">start</span>::<span class="ident">StartBlock</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::{<span class="ident">ExchangeData</span>, <span class="ident">Operator</span>, <span class="ident">StreamElement</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">scheduler</span>::<span class="ident">ExecutionMetadata</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">stream</span>::{<span class="ident">BlockId</span>, <span class="ident">Stream</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::block</span>::{<span class="ident">BlockStructure</span>, <span class="ident">Connection</span>, <span class="ident">NextStrategy</span>, <span class="ident">OperatorReceiver</span>, <span class="ident">OperatorStructure</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::environment::StreamEnvironmentInner</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::network</span>::{<span class="ident">Coord</span>, <span class="ident">NetworkMessage</span>, <span class="ident">NetworkReceiver</span>, <span class="ident">NetworkSender</span>, <span class="ident">ReceiverEndpoint</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::end::EndBlock</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::iteration::iteration_end::IterationEndBlock</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::iteration::leader::IterationLeader</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::iteration::state_handler::IterationStateHandler</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::iteration</span>::{<span class="ident">IterationStateHandle</span>, <span class="ident">IterationStateLock</span>, <span class="ident">NewIterationState</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::start::StartBlock</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator</span>::{<span class="ident">ExchangeData</span>, <span class="ident">Operator</span>, <span class="ident">StreamElement</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::scheduler::ExecutionMetadata</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::stream</span>::{<span class="ident">BlockId</span>, <span class="ident">Stream</span>};
 
 <span class="kw">fn</span> <span class="ident">clone_with_default</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Default</span><span class="op">&gt;</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
-    <span class="ident">T</span>::<span class="ident">default</span>()
+    <span class="ident">T::default</span>()
 }
 
 <span class="doccomment">/// This is the first operator of the chain of blocks inside an iteration.</span>
@@ -477,18 +528,18 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="comment">// these fields will be set inside the `setup` method</span>
-            <span class="ident">coord</span>: <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>),
+            <span class="ident">coord</span>: <span class="ident">Coord::new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>),
             <span class="ident">feedback_receiver</span>: <span class="prelude-val">None</span>,
             <span class="ident">feedback_end_block_id</span>,
             <span class="ident">output_sender</span>: <span class="prelude-val">None</span>,
             <span class="ident">output_block_id</span>,
 
             <span class="ident">prev</span>,
-            <span class="ident">content</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">content</span>: <span class="ident">Default::default</span>(),
             <span class="ident">content_index</span>: <span class="number">0</span>,
-            <span class="ident">next_content</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">next_content</span>: <span class="ident">Default::default</span>(),
             <span class="ident">has_input_ended</span>: <span class="bool-val">false</span>,
-            <span class="ident">state</span>: <span class="ident">IterationStateHandler</span>::<span class="ident">new</span>(<span class="ident">leader_block_id</span>, <span class="ident">state_ref</span>, <span class="ident">state_lock</span>),
+            <span class="ident">state</span>: <span class="ident">IterationStateHandler::new</span>(<span class="ident">leader_block_id</span>, <span class="ident">state_ref</span>, <span class="ident">state_lock</span>),
         }
     }
 }
@@ -497,6 +548,57 @@
 <span class="kw">where</span>
     <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
+    <span class="doccomment">/// Construct an iterative dataflow where the input stream is fed inside a cycle. What comes</span>
+    <span class="doccomment">/// out of the loop will be fed back at the next iteration.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This iteration is stateful, this means that all the replicas have a read-only access to the</span>
+    <span class="doccomment">/// _iteration state_. The initial value of the state is given as parameter. When an iteration</span>
+    <span class="doccomment">/// ends all the elements are reduced locally at each replica producing a `DeltaUpdate`. Those</span>
+    <span class="doccomment">/// delta updates are later reduced on a single node that, using the `global_fold` function will</span>
+    <span class="doccomment">/// compute the state for the next iteration. This state is also used in `loop_condition` to</span>
+    <span class="doccomment">/// check whether the next iteration should start or not. `loop_condition` is also allowed to</span>
+    <span class="doccomment">/// mutate the state.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The initial value of `DeltaUpdate` is initialized with [`Default::default()`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The content of the loop has a new scope: it&#39;s defined by the `body` function that takes as</span>
+    <span class="doccomment">/// parameter the stream of data coming inside the iteration and a reference to the state. This</span>
+    <span class="doccomment">/// function should return the stream of the data that exits from the loop (that will be fed</span>
+    <span class="doccomment">/// back).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This construct produces two stream:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// - the first is a stream with a single item: the final state of the iteration</span>
+    <span class="doccomment">/// - the second if the set of elements that exited the loop during the last iteration (i.e. the</span>
+    <span class="doccomment">///   ones that should have been fed back in the next iteration).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: due to an internal limitation, it&#39;s not currently possible to add an iteration</span>
+    <span class="doccomment">/// operator when the stream has limited parallelism. This means, for example, that after a</span>
+    <span class="doccomment">/// non-parallel source you have to add a shuffle.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will split the current block.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s = env.stream(IteratorSource::new(0..3)).shuffle();</span>
+    <span class="doccomment">/// let (state, items) = s.iterate(</span>
+    <span class="doccomment">///     3, // at most 3 iterations</span>
+    <span class="doccomment">///     0, // the initial state is zero</span>
+    <span class="doccomment">///     |s, state| s.map(|n| n + 10),</span>
+    <span class="doccomment">///     |delta: &amp;mut i32, n| *delta += n,</span>
+    <span class="doccomment">///     |state, delta| *state += delta,</span>
+    <span class="doccomment">///     |_state| true,</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">/// let state = state.collect_vec();</span>
+    <span class="doccomment">/// let items = items.collect_vec();</span>
+    <span class="doccomment">/// env.execute();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(state.get().unwrap(), vec![10 + 11 + 12 + 20 + 21 + 22 + 30 + 31 + 32]);</span>
+    <span class="doccomment">/// assert_eq!(items.get().unwrap(), vec![30, 31, 32]);</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterate</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">DeltaUpdate</span>: <span class="ident">ExchangeData</span> <span class="op">+</span> <span class="ident">Default</span>, <span class="ident">State</span>: <span class="ident">ExchangeData</span>, <span class="ident">OperatorChain2</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">num_iterations</span>: <span class="ident">usize</span>,
@@ -518,25 +620,25 @@
     {
         <span class="comment">// this is required because if the iteration block is not present on all the hosts, the ones</span>
         <span class="comment">// without it won&#39;t receive the state updates.</span>
-        <span class="macro">assert</span><span class="macro">!</span>(
+        <span class="macro">assert!</span>(
             <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">scheduler_requirements</span>.<span class="ident">max_parallelism</span>.<span class="ident">is_none</span>(),
             <span class="string">&quot;Cannot have an iteration block with limited parallelism&quot;</span>
         );
 
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">IterationStateHandle</span>::<span class="ident">new</span>(<span class="ident">initial_state</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">IterationStateHandle::new</span>(<span class="ident">initial_state</span>.<span class="ident">clone</span>());
         <span class="kw">let</span> <span class="ident">state_clone</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env</span>.<span class="ident">clone</span>();
 
         <span class="comment">// the id of the block where IterationEndBlock is. At this moment we cannot know it, so we</span>
         <span class="comment">// store a fake value inside this and as soon as we know it we set it to the right value.</span>
-        <span class="kw">let</span> <span class="ident">shared_delta_update_end_block_id</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">0</span>));
-        <span class="kw">let</span> <span class="ident">shared_feedback_end_block_id</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">0</span>));
-        <span class="kw">let</span> <span class="ident">shared_output_block_id</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">0</span>));
+        <span class="kw">let</span> <span class="ident">shared_delta_update_end_block_id</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicUsize::new</span>(<span class="number">0</span>));
+        <span class="kw">let</span> <span class="ident">shared_feedback_end_block_id</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicUsize::new</span>(<span class="number">0</span>));
+        <span class="kw">let</span> <span class="ident">shared_output_block_id</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicUsize::new</span>(<span class="number">0</span>));
 
         <span class="comment">// prepare the stream with the IterationLeader block, this will provide the state output</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">leader_stream</span> <span class="op">=</span> <span class="ident">StreamEnvironmentInner</span>::<span class="ident">stream</span>(
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">leader_stream</span> <span class="op">=</span> <span class="ident">StreamEnvironmentInner::stream</span>(
             <span class="ident">env</span>.<span class="ident">clone</span>(),
-            <span class="ident">IterationLeader</span>::<span class="ident">new</span>(
+            <span class="ident">IterationLeader::new</span>(
                 <span class="ident">initial_state</span>,
                 <span class="ident">num_iterations</span>,
                 <span class="ident">global_fold</span>,
@@ -550,11 +652,11 @@
             <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">iteration_state_lock_stack</span>.<span class="ident">clone</span>();
 
         <span class="comment">// the lock for synchronizing the access to the state of this iteration</span>
-        <span class="kw">let</span> <span class="ident">state_lock</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">IterationStateLock</span>::<span class="ident">default</span>());
+        <span class="kw">let</span> <span class="ident">state_lock</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">IterationStateLock::default</span>());
 
         <span class="comment">// prepare the loop body stream</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter_start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> {
-            <span class="ident">Iterate</span>::<span class="ident">new</span>(
+            <span class="ident">Iterate::new</span>(
                 <span class="ident">prev</span>,
                 <span class="ident">state</span>,
                 <span class="ident">leader_block_id</span>,
@@ -566,9 +668,9 @@
         <span class="kw">let</span> <span class="ident">iterate_block_id</span> <span class="op">=</span> <span class="ident">iter_start</span>.<span class="ident">block</span>.<span class="ident">id</span>;
 
         <span class="comment">// prepare the stream that will output the content of the loop</span>
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">StreamEnvironmentInner</span>::<span class="ident">stream</span>(
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">StreamEnvironmentInner::stream</span>(
             <span class="ident">env</span>.<span class="ident">clone</span>(),
-            <span class="ident">StartBlock</span>::<span class="ident">single</span>(
+            <span class="ident">StartBlock::single</span>(
                 <span class="ident">iterate_block_id</span>,
                 <span class="ident">iter_start</span>.<span class="ident">block</span>.<span class="ident">iteration_state_lock_stack</span>.<span class="ident">last</span>().<span class="ident">cloned</span>(),
             ),
@@ -589,35 +691,35 @@
         <span class="comment">// since it&#39;s manually handled by the Iterate operator.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body_end</span> <span class="op">=</span> <span class="ident">body_end</span>.<span class="ident">add_block</span>(
             <span class="kw">move</span> <span class="op">|</span><span class="ident">prev</span>, <span class="ident">next_strategy</span>, <span class="ident">batch_mode</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">EndBlock</span>::<span class="ident">new</span>(<span class="ident">prev</span>, <span class="ident">next_strategy</span>, <span class="ident">batch_mode</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">EndBlock::new</span>(<span class="ident">prev</span>, <span class="ident">next_strategy</span>, <span class="ident">batch_mode</span>);
                 <span class="ident">end</span>.<span class="ident">ignore_destination</span>(<span class="ident">output_block_id</span>);
                 <span class="ident">end</span>
             },
-            <span class="ident">NextStrategy</span>::<span class="ident">only_one</span>(),
+            <span class="ident">NextStrategy::only_one</span>(),
         );
         <span class="kw">let</span> <span class="ident">body_end_block_id</span> <span class="op">=</span> <span class="ident">body_end</span>.<span class="ident">block</span>.<span class="ident">id</span>;
 
         <span class="kw">let</span> <span class="ident">post_iter_stack</span> <span class="op">=</span> <span class="ident">body_end</span>.<span class="ident">block</span>.<span class="ident">iteration_stack</span>();
         <span class="kw">if</span> <span class="ident">pre_iter_stack</span> <span class="op">!</span><span class="op">=</span> <span class="ident">post_iter_stack</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;The body of the iteration should return the stream given as parameter&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">&quot;The body of the iteration should return the stream given as parameter&quot;</span>);
         }
         <span class="ident">body_end</span>.<span class="ident">block</span>.<span class="ident">iteration_state_lock_stack</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
         <span class="comment">// First split of the body: the data will be reduced into delta updates</span>
-        <span class="kw">let</span> <span class="ident">delta_update_end</span> <span class="op">=</span> <span class="ident">StreamEnvironmentInner</span>::<span class="ident">stream</span>(
+        <span class="kw">let</span> <span class="ident">delta_update_end</span> <span class="op">=</span> <span class="ident">StreamEnvironmentInner::stream</span>(
             <span class="ident">env</span>.<span class="ident">clone</span>(),
-            <span class="ident">StartBlock</span>::<span class="ident">single</span>(<span class="ident">body_end_block_id</span>, <span class="prelude-val">Some</span>(<span class="ident">state_lock</span>)),
+            <span class="ident">StartBlock::single</span>(<span class="ident">body_end_block_id</span>, <span class="prelude-val">Some</span>(<span class="ident">state_lock</span>)),
         )
         .<span class="ident">key_by</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
-        .<span class="ident">fold</span>(<span class="ident">DeltaUpdate</span>::<span class="ident">default</span>(), <span class="ident">local_fold</span>)
+        .<span class="ident">fold</span>(<span class="ident">DeltaUpdate::default</span>(), <span class="ident">local_fold</span>)
         .<span class="ident">drop_key</span>()
-        .<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">IterationEndBlock</span>::<span class="ident">new</span>(<span class="ident">prev</span>, <span class="ident">leader_block_id</span>));
+        .<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">IterationEndBlock::new</span>(<span class="ident">prev</span>, <span class="ident">leader_block_id</span>));
         <span class="kw">let</span> <span class="ident">delta_update_end_block_id</span> <span class="op">=</span> <span class="ident">delta_update_end</span>.<span class="ident">block</span>.<span class="ident">id</span>;
 
         <span class="comment">// Second split of the body: the data will be fed back to the Iterate block</span>
         <span class="kw">let</span> <span class="ident">batch_mode</span> <span class="op">=</span> <span class="ident">body_end</span>.<span class="ident">block</span>.<span class="ident">batch_mode</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">feedback_end</span> <span class="op">=</span> <span class="ident">body_end</span>.<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">EndBlock</span>::<span class="ident">new</span>(<span class="ident">prev</span>, <span class="ident">NextStrategy</span>::<span class="ident">only_one</span>(), <span class="ident">batch_mode</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">EndBlock::new</span>(<span class="ident">prev</span>, <span class="ident">NextStrategy::only_one</span>(), <span class="ident">batch_mode</span>);
             <span class="ident">end</span>.<span class="ident">mark_feedback</span>(<span class="ident">iterate_block_id</span>);
             <span class="ident">end</span>
         });
@@ -632,30 +734,30 @@
         <span class="ident">scheduler</span>.<span class="ident">connect_blocks</span>(
             <span class="ident">body_end_block_id</span>,
             <span class="ident">delta_update_end_block_id</span>,
-            <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>(),
+            <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>(),
         );
         <span class="comment">// connect the IterationEndBlock to the IterationLeader</span>
         <span class="ident">scheduler</span>.<span class="ident">connect_blocks</span>(
             <span class="ident">delta_update_end_block_id</span>,
             <span class="ident">leader_block_id</span>,
-            <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">DeltaUpdate</span><span class="op">&gt;</span>(),
+            <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">DeltaUpdate</span><span class="op">&gt;</span>(),
         );
         <span class="comment">// connect the IterationLeader to the Iterate</span>
         <span class="ident">scheduler</span>.<span class="ident">connect_blocks</span>(
             <span class="ident">leader_block_id</span>,
             <span class="ident">iterate_block_id</span>,
-            <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">NewIterationState</span><span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">NewIterationState</span><span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
         );
         <span class="comment">// connect the feedback</span>
-        <span class="ident">scheduler</span>.<span class="ident">connect_blocks</span>(<span class="ident">feedback_end_block_id</span>, <span class="ident">iterate_block_id</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>());
+        <span class="ident">scheduler</span>.<span class="ident">connect_blocks</span>(<span class="ident">feedback_end_block_id</span>, <span class="ident">iterate_block_id</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>());
         <span class="comment">// connect the output stream</span>
-        <span class="ident">scheduler</span>.<span class="ident">connect_blocks_fragile</span>(<span class="ident">iterate_block_id</span>, <span class="ident">output_block_id</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>());
+        <span class="ident">scheduler</span>.<span class="ident">connect_blocks_fragile</span>(<span class="ident">iterate_block_id</span>, <span class="ident">output_block_id</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>());
         <span class="ident">drop</span>(<span class="ident">env</span>);
 
         <span class="comment">// store the id of the blocks we now know</span>
-        <span class="ident">shared_delta_update_end_block_id</span>.<span class="ident">store</span>(<span class="ident">delta_update_end_block_id</span>, <span class="ident">Ordering</span>::<span class="ident">Release</span>);
-        <span class="ident">shared_feedback_end_block_id</span>.<span class="ident">store</span>(<span class="ident">feedback_end_block_id</span>, <span class="ident">Ordering</span>::<span class="ident">Release</span>);
-        <span class="ident">shared_output_block_id</span>.<span class="ident">store</span>(<span class="ident">output_block_id</span>, <span class="ident">Ordering</span>::<span class="ident">Release</span>);
+        <span class="ident">shared_delta_update_end_block_id</span>.<span class="ident">store</span>(<span class="ident">delta_update_end_block_id</span>, <span class="ident">Ordering::Release</span>);
+        <span class="ident">shared_feedback_end_block_id</span>.<span class="ident">store</span>(<span class="ident">feedback_end_block_id</span>, <span class="ident">Ordering::Release</span>);
+        <span class="ident">shared_output_block_id</span>.<span class="ident">store</span>(<span class="ident">output_block_id</span>, <span class="ident">Ordering::Release</span>);
 
         <span class="comment">// TODO: check parallelism and make sure the blocks are spawned on the same replicas</span>
 
@@ -664,7 +766,7 @@
         <span class="comment">//        the connections made by the scheduler and if accidentally set to OnlyOne will</span>
         <span class="comment">//        break the connections.</span>
         (
-            <span class="ident">leader_stream</span>.<span class="ident">add_block</span>(<span class="ident">EndBlock</span>::<span class="ident">new</span>, <span class="ident">NextStrategy</span>::<span class="ident">random</span>()),
+            <span class="ident">leader_stream</span>.<span class="ident">add_block</span>(<span class="ident">EndBlock::new</span>, <span class="ident">NextStrategy::random</span>()),
             <span class="ident">output</span>,
         )
     }
@@ -679,13 +781,13 @@
         <span class="self">self</span>.<span class="ident">coord</span> <span class="op">=</span> <span class="ident">metadata</span>.<span class="ident">coord</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">network</span> <span class="op">=</span> <span class="ident">metadata</span>.<span class="ident">network</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">feedback_end_block_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">feedback_end_block_id</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Acquire</span>);
-        <span class="kw">let</span> <span class="ident">feedback_endpoint</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint</span>::<span class="ident">new</span>(<span class="ident">metadata</span>.<span class="ident">coord</span>, <span class="ident">feedback_end_block_id</span>);
+        <span class="kw">let</span> <span class="ident">feedback_end_block_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">feedback_end_block_id</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+        <span class="kw">let</span> <span class="ident">feedback_endpoint</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint::new</span>(<span class="ident">metadata</span>.<span class="ident">coord</span>, <span class="ident">feedback_end_block_id</span>);
         <span class="self">self</span>.<span class="ident">feedback_receiver</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">network</span>.<span class="ident">get_receiver</span>(<span class="ident">feedback_endpoint</span>));
 
-        <span class="kw">let</span> <span class="ident">output_block_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">output_block_id</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Acquire</span>);
-        <span class="kw">let</span> <span class="ident">output_endpoint</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint</span>::<span class="ident">new</span>(
-            <span class="ident">Coord</span>::<span class="ident">new</span>(
+        <span class="kw">let</span> <span class="ident">output_block_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">output_block_id</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+        <span class="kw">let</span> <span class="ident">output_endpoint</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint::new</span>(
+            <span class="ident">Coord::new</span>(
                 <span class="ident">output_block_id</span>,
                 <span class="ident">metadata</span>.<span class="ident">coord</span>.<span class="ident">host_id</span>,
                 <span class="ident">metadata</span>.<span class="ident">coord</span>.<span class="ident">replica_id</span>,
@@ -708,8 +810,8 @@
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">has_input_ended</span> {
             <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">next</span>();
             <span class="kw">return</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">item</span> {
-                <span class="ident">StreamElement</span>::<span class="ident">FlushAndRestart</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">debug</span><span class="macro">!</span>(
+                <span class="ident">StreamElement::FlushAndRestart</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="macro">debug!</span>(
                         <span class="string">&quot;Iterate at {} received all the input: {} elements total&quot;</span>,
                         <span class="self">self</span>.<span class="ident">coord</span>,
                         <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">len</span>()
@@ -717,22 +819,22 @@
                     <span class="self">self</span>.<span class="ident">has_input_ended</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     <span class="comment">// since this moment accessing the state for the next iteration must wait</span>
                     <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">lock</span>();
-                    <span class="ident">StreamElement</span>::<span class="ident">FlushAndRestart</span>
+                    <span class="ident">StreamElement::FlushAndRestart</span>
                 }
-                <span class="ident">StreamElement</span>::<span class="ident">Item</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">StreamElement</span>::<span class="ident">Timestamped</span>(<span class="kw">_</span>, <span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">StreamElement</span>::<span class="ident">Watermark</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">StreamElement</span>::<span class="ident">FlushBatch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">item</span>,
-                <span class="ident">StreamElement</span>::<span class="ident">Terminate</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Iterate at {} is terminating&quot;</span>, <span class="self">self</span>.<span class="ident">coord</span>);
-                    <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">NetworkMessage</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">StreamElement</span>::<span class="ident">Terminate</span>], <span class="self">self</span>.<span class="ident">coord</span>);
+                <span class="ident">StreamElement::Item</span>(<span class="kw">_</span>)
+                <span class="op">|</span> <span class="ident">StreamElement::Timestamped</span>(<span class="kw">_</span>, <span class="kw">_</span>)
+                <span class="op">|</span> <span class="ident">StreamElement::Watermark</span>(<span class="kw">_</span>)
+                <span class="op">|</span> <span class="ident">StreamElement::FlushBatch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">item</span>,
+                <span class="ident">StreamElement::Terminate</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="macro">debug!</span>(<span class="string">&quot;Iterate at {} is terminating&quot;</span>, <span class="self">self</span>.<span class="ident">coord</span>);
+                    <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">NetworkMessage::new</span>(<span class="macro">vec!</span>[<span class="ident">StreamElement::Terminate</span>], <span class="self">self</span>.<span class="ident">coord</span>);
                     <span class="self">self</span>.<span class="ident">output_sender</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">send</span>(<span class="ident">message</span>).<span class="ident">unwrap</span>();
                     <span class="ident">item</span>
                 }
             };
         } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">content</span>.<span class="ident">is_empty</span>() {
             <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">pop_front</span>().<span class="ident">unwrap</span>();
-            <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">item</span>, <span class="ident">StreamElement</span>::<span class="ident">FlushAndRestart</span>) {
+            <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">item</span>, <span class="ident">StreamElement::FlushAndRestart</span>) {
                 <span class="comment">// since this moment accessing the state for the next iteration must wait</span>
                 <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">lock</span>();
             }
@@ -740,26 +842,26 @@
         }
 
         <span class="comment">// make sure to consume all the feedback</span>
-        <span class="kw">while</span> <span class="op">!</span><span class="macro">matches</span><span class="macro">!</span>(
+        <span class="kw">while</span> <span class="op">!</span><span class="macro">matches!</span>(
             <span class="self">self</span>.<span class="ident">next_content</span>.<span class="ident">back</span>(),
-            <span class="prelude-val">Some</span>(<span class="ident">StreamElement</span>::<span class="ident">FlushAndRestart</span>)
+            <span class="prelude-val">Some</span>(<span class="ident">StreamElement::FlushAndRestart</span>)
         ) {
             <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">feedback_receiver</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">recv</span>().<span class="ident">unwrap</span>();
             <span class="self">self</span>.<span class="ident">next_content</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">message</span>.<span class="ident">batch</span>().<span class="ident">into</span>());
         }
 
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Iterate at {} has ended the iteration&quot;</span>, <span class="self">self</span>.<span class="ident">coord</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;Iterate at {} has ended the iteration&quot;</span>, <span class="self">self</span>.<span class="ident">coord</span>);
 
         <span class="comment">// make sure not to lose anything</span>
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">content</span>.<span class="ident">is_empty</span>());
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">content</span>.<span class="ident">is_empty</span>());
         <span class="comment">// the next iteration</span>
-        <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">content</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">next_content</span>);
+        <span class="ident">std::mem::swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">content</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">next_content</span>);
 
         <span class="comment">// this iteration has ended, wait here for the leader</span>
         <span class="kw">let</span> <span class="ident">should_continue</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">wait_leader</span>();
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">should_continue</span> {
-            <span class="macro">debug</span><span class="macro">!</span>(
+            <span class="macro">debug!</span>(
                 <span class="string">&quot;Iterate block at {} ended the iteration, producing: {:?}&quot;</span>,
                 <span class="self">self</span>.<span class="ident">coord</span>,
                 <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">variant</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
@@ -767,7 +869,7 @@
             <span class="comment">// cleanup so that if this is a nested iteration next time we&#39;ll be good to start again</span>
             <span class="self">self</span>.<span class="ident">has_input_ended</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-            <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">NetworkMessage</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">content</span>.<span class="ident">drain</span>(..).<span class="ident">collect</span>(), <span class="self">self</span>.<span class="ident">coord</span>);
+            <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">NetworkMessage::new</span>(<span class="self">self</span>.<span class="ident">content</span>.<span class="ident">drain</span>(..).<span class="ident">collect</span>(), <span class="self">self</span>.<span class="ident">coord</span>);
             <span class="self">self</span>.<span class="ident">output_sender</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">send</span>(<span class="ident">message</span>).<span class="ident">unwrap</span>();
         }
 
@@ -777,31 +879,31 @@
     }
 
     <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-        <span class="macro">format</span><span class="macro">!</span>(
+        <span class="macro">format!</span>(
             <span class="string">&quot;{} -&gt; Iterate&lt;{}&gt;&quot;</span>,
             <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">to_string</span>(),
-            <span class="ident">std</span>::<span class="ident">any</span>::<span class="ident">type_name</span>::<span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>()
+            <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>()
         )
     }
 
     <span class="kw">fn</span> <span class="ident">structure</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BlockStructure</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">operator</span> <span class="op">=</span> <span class="ident">OperatorStructure</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">Out</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="string">&quot;Iterate&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">operator</span> <span class="op">=</span> <span class="ident">OperatorStructure::new</span>::<span class="op">&lt;</span><span class="ident">Out</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="string">&quot;Iterate&quot;</span>);
         <span class="ident">operator</span>
             .<span class="ident">receivers</span>
-            .<span class="ident">push</span>(<span class="ident">OperatorReceiver</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">NewIterationState</span><span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+            .<span class="ident">push</span>(<span class="ident">OperatorReceiver::new</span>::<span class="op">&lt;</span><span class="ident">NewIterationState</span><span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span><span class="op">&gt;</span>(
                 <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">leader_block_id</span>,
             ));
-        <span class="ident">operator</span>.<span class="ident">receivers</span>.<span class="ident">push</span>(<span class="ident">OperatorReceiver</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>(
-            <span class="self">self</span>.<span class="ident">feedback_end_block_id</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Acquire</span>),
+        <span class="ident">operator</span>.<span class="ident">receivers</span>.<span class="ident">push</span>(<span class="ident">OperatorReceiver::new</span>::<span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>(
+            <span class="self">self</span>.<span class="ident">feedback_end_block_id</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>),
         ));
-        <span class="kw">let</span> <span class="ident">output_block_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">output_block_id</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Acquire</span>);
-        <span class="ident">operator</span>.<span class="ident">connections</span>.<span class="ident">push</span>(<span class="ident">Connection</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">Out</span>, <span class="kw">_</span><span class="op">&gt;</span>(
+        <span class="kw">let</span> <span class="ident">output_block_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">output_block_id</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+        <span class="ident">operator</span>.<span class="ident">connections</span>.<span class="ident">push</span>(<span class="ident">Connection::new</span>::<span class="op">&lt;</span><span class="ident">Out</span>, <span class="kw">_</span><span class="op">&gt;</span>(
             <span class="ident">output_block_id</span>,
-            <span class="kw-2">&amp;</span><span class="ident">NextStrategy</span>::<span class="ident">only_one</span>(),
+            <span class="kw-2">&amp;</span><span class="ident">NextStrategy::only_one</span>(),
         ));
         <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">structure</span>().<span class="ident">add_operator</span>(<span class="ident">operator</span>)
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="rstream" data-search-js="../../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="rstream" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
     <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script></body></html>

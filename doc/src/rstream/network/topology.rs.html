@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/network/topology.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>topology.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rstream/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rstream/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -694,23 +694,23 @@
 <span id="691">691</span>
 <span id="692">692</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">any</span>::<span class="ident">TypeId</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">JoinHandle</span>;
+<span class="kw">use</span> <span class="ident">std::any::TypeId</span>;
+<span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>};
+<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+<span class="kw">use</span> <span class="ident">std::thread::JoinHandle</span>;
 
-<span class="kw">use</span> <span class="ident">itertools</span>::<span class="ident">Itertools</span>;
+<span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
 <span class="kw">use</span> <span class="ident">typemap</span>::{<span class="ident">Key</span>, <span class="ident">SendMap</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">config</span>::{<span class="ident">EnvironmentConfig</span>, <span class="ident">ExecutionRuntime</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">network</span>::<span class="ident">demultiplexer</span>::<span class="ident">DemultiplexingReceiver</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">network</span>::<span class="ident">multiplexer</span>::<span class="ident">MultiplexingSender</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">network</span>::{
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::config</span>::{<span class="ident">EnvironmentConfig</span>, <span class="ident">ExecutionRuntime</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::network::demultiplexer::DemultiplexingReceiver</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::network::multiplexer::MultiplexingSender</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::network</span>::{
     <span class="ident">BlockCoord</span>, <span class="ident">Coord</span>, <span class="ident">DemuxCoord</span>, <span class="ident">NetworkReceiver</span>, <span class="ident">NetworkSender</span>, <span class="ident">ReceiverEndpoint</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">ExchangeData</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">scheduler</span>::<span class="ident">HostId</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">stream</span>::<span class="ident">BlockId</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::ExchangeData</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::scheduler::HostId</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::stream::BlockId</span>;
 
 <span class="doccomment">/// This struct is used to index inside the `typemap` with the `NetworkReceiver`s.</span>
 <span class="kw">struct</span> <span class="ident">ReceiverKey</span><span class="op">&lt;</span><span class="ident">In</span>: <span class="ident">ExchangeData</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">In</span><span class="op">&gt;</span>);
@@ -821,18 +821,18 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">EnvironmentConfig</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">NetworkTopology</span> {
             <span class="ident">config</span>,
-            <span class="ident">receivers</span>: <span class="ident">SendMap</span>::<span class="ident">custom</span>(),
-            <span class="ident">senders</span>: <span class="ident">SendMap</span>::<span class="ident">custom</span>(),
-            <span class="ident">demultiplexers</span>: <span class="ident">SendMap</span>::<span class="ident">custom</span>(),
-            <span class="ident">multiplexers</span>: <span class="ident">SendMap</span>::<span class="ident">custom</span>(),
-            <span class="ident">next</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">prev</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">senders_metadata</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">block_replicas</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">used_receivers</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">registered_receivers</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">demultiplexer_addresses</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">join_handles</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">receivers</span>: <span class="ident">SendMap::custom</span>(),
+            <span class="ident">senders</span>: <span class="ident">SendMap::custom</span>(),
+            <span class="ident">demultiplexers</span>: <span class="ident">SendMap::custom</span>(),
+            <span class="ident">multiplexers</span>: <span class="ident">SendMap::custom</span>(),
+            <span class="ident">next</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">prev</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">senders_metadata</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">block_replicas</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">used_receivers</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">registered_receivers</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">demultiplexer_addresses</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">join_handles</span>: <span class="ident">Default::default</span>(),
         }
     }
 
@@ -862,9 +862,9 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">coord</span>: <span class="ident">Coord</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">ReceiverEndpoint</span>, <span class="ident">NetworkSender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="ident">coord</span>, <span class="ident">typ</span>)) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Default::default</span>(),
             <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">clone</span>();
                 <span class="ident">next</span>.<span class="ident">iter</span>()
@@ -872,7 +872,7 @@
                         <span class="kw">if</span> <span class="ident">fragile</span> {
                             <span class="prelude-val">None</span>
                         } <span class="kw">else</span> {
-                            <span class="kw">let</span> <span class="ident">receiver_endpoint</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint</span>::<span class="ident">new</span>(<span class="ident">c</span>, <span class="ident">coord</span>.<span class="ident">block_id</span>);
+                            <span class="kw">let</span> <span class="ident">receiver_endpoint</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint::new</span>(<span class="ident">c</span>, <span class="ident">coord</span>.<span class="ident">block_id</span>);
                             <span class="prelude-val">Some</span>((<span class="ident">receiver_endpoint</span>, <span class="self">self</span>.<span class="ident">get_sender</span>(<span class="ident">receiver_endpoint</span>)))
                         }
                     })
@@ -888,7 +888,7 @@
         <span class="ident">receiver_endpoint</span>: <span class="ident">ReceiverEndpoint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NetworkSender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">senders</span>.<span class="ident">contains</span>::<span class="op">&lt;</span><span class="ident">SenderKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
-            <span class="self">self</span>.<span class="ident">senders</span>.<span class="ident">insert</span>::<span class="op">&lt;</span><span class="ident">SenderKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">Default</span>::<span class="ident">default</span>());
+            <span class="self">self</span>.<span class="ident">senders</span>.<span class="ident">insert</span>::<span class="op">&lt;</span><span class="ident">SenderKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
         }
         <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">senders</span>.<span class="ident">get_mut</span>::<span class="op">&lt;</span><span class="ident">SenderKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
         <span class="kw">if</span> <span class="op">!</span><span class="ident">entry</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">receiver_endpoint</span>) {
@@ -911,7 +911,7 @@
         <span class="ident">receiver_endpoint</span>: <span class="ident">ReceiverEndpoint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NetworkReceiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">used_receivers</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">receiver_endpoint</span>) {
-            <span class="macro">panic</span><span class="macro">!</span>(
+            <span class="macro">panic!</span>(
                 <span class="string">&quot;The receiver for {} has already been got&quot;</span>,
                 <span class="ident">receiver_endpoint</span>
             );
@@ -919,7 +919,7 @@
         <span class="self">self</span>.<span class="ident">used_receivers</span>.<span class="ident">insert</span>(<span class="ident">receiver_endpoint</span>);
 
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">receivers</span>.<span class="ident">contains</span>::<span class="op">&lt;</span><span class="ident">ReceiverKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
-            <span class="self">self</span>.<span class="ident">receivers</span>.<span class="ident">insert</span>::<span class="op">&lt;</span><span class="ident">ReceiverKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">Default</span>::<span class="ident">default</span>());
+            <span class="self">self</span>.<span class="ident">receivers</span>.<span class="ident">insert</span>::<span class="op">&lt;</span><span class="ident">ReceiverKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
         }
         <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">receivers</span>.<span class="ident">get_mut</span>::<span class="op">&lt;</span><span class="ident">ReceiverKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
         <span class="comment">// if the channel has not been registered yet, register it</span>
@@ -938,8 +938,8 @@
     <span class="doccomment">/// This will initialize both the sender and the receiver to the receiver. If it&#39;s appropriate</span>
     <span class="doccomment">/// also the multiplexer and/or the demultiplexer are initialized and started.</span>
     <span class="kw">fn</span> <span class="ident">register_channel</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ExchangeData</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">receiver_endpoint</span>: <span class="ident">ReceiverEndpoint</span>) {
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Registering {}&quot;</span>, <span class="ident">receiver_endpoint</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(
+        <span class="macro">debug!</span>(<span class="string">&quot;Registering {}&quot;</span>, <span class="ident">receiver_endpoint</span>);
+        <span class="macro">assert!</span>(
             <span class="self">self</span>.<span class="ident">registered_receivers</span>.<span class="ident">insert</span>(<span class="ident">receiver_endpoint</span>),
             <span class="string">&quot;Receiver {} has already been registered&quot;</span>,
             <span class="ident">receiver_endpoint</span>
@@ -947,25 +947,25 @@
         <span class="kw">let</span> <span class="ident">sender_metadata</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">senders_metadata</span>
             .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">receiver_endpoint</span>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Channel for endpoint {} not registered&quot;</span>, <span class="ident">receiver_endpoint</span>));
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;Channel for endpoint {} not registered&quot;</span>, <span class="ident">receiver_endpoint</span>));
 
         <span class="comment">// create the receiver part of the channel</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">receiver</span> <span class="op">=</span> <span class="ident">NetworkReceiver</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">receiver_endpoint</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">receiver</span> <span class="op">=</span> <span class="ident">NetworkReceiver</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">receiver_endpoint</span>);
         <span class="kw">let</span> <span class="ident">local_sender</span> <span class="op">=</span> <span class="ident">receiver</span>.<span class="ident">sender</span>().<span class="ident">unwrap</span>();
 
         <span class="comment">// if the receiver is local and the runtime is remote, register it to the demultiplexer</span>
         <span class="kw">if</span> <span class="ident">receiver_endpoint</span>.<span class="ident">coord</span>.<span class="ident">host_id</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">host_id</span>.<span class="ident">unwrap</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ExecutionRuntime</span>::<span class="ident">Remote</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>.<span class="ident">runtime</span> {
-                <span class="kw">let</span> <span class="ident">demux_coord</span> <span class="op">=</span> <span class="ident">DemuxCoord</span>::<span class="ident">from</span>(<span class="ident">receiver_endpoint</span>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ExecutionRuntime::Remote</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>.<span class="ident">runtime</span> {
+                <span class="kw">let</span> <span class="ident">demux_coord</span> <span class="op">=</span> <span class="ident">DemuxCoord::from</span>(<span class="ident">receiver_endpoint</span>);
                 <span class="kw">let</span> <span class="ident">demuxes</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">demultiplexers</span>
                     .<span class="ident">entry</span>::<span class="op">&lt;</span><span class="ident">DemultiplexingReceiverKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                    .<span class="ident">or_insert_with</span>(<span class="ident">Default</span>::<span class="ident">default</span>);
-                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">map_entry</span>)]</span>
+                    .<span class="ident">or_insert_with</span>(<span class="ident">Default::default</span>);
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::map_entry</span>)]</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">demuxes</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">demux_coord</span>) {
                     <span class="comment">// find the set of all the previous blocks that have a MultiplexingSender that</span>
                     <span class="comment">// point to this DemultiplexingReceiver.</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
                     <span class="comment">// FIXME: maybe this can benefit from self.prev</span>
                     <span class="kw">for</span> (<span class="kw-2">&amp;</span>(<span class="ident">from</span>, <span class="ident">typ</span>), <span class="ident">to</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">next</span> {
                         <span class="comment">// local blocks won&#39;t use the multiplexer</span>
@@ -973,23 +973,23 @@
                             <span class="kw">continue</span>;
                         }
                         <span class="comment">// ignore channels of the wrong type</span>
-                        <span class="kw">if</span> <span class="ident">typ</span> <span class="op">!</span><span class="op">=</span> <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
+                        <span class="kw">if</span> <span class="ident">typ</span> <span class="op">!</span><span class="op">=</span> <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
                             <span class="kw">continue</span>;
                         }
                         <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">to</span>, <span class="ident">_fragile</span>) <span class="kw">in</span> <span class="ident">to</span> {
                             <span class="kw">if</span> <span class="ident">demux_coord</span>.<span class="ident">includes_channel</span>(<span class="ident">from</span>, <span class="ident">to</span>) {
-                                <span class="ident">prev</span>.<span class="ident">insert</span>(<span class="ident">BlockCoord</span>::<span class="ident">from</span>(<span class="ident">from</span>));
+                                <span class="ident">prev</span>.<span class="ident">insert</span>(<span class="ident">BlockCoord::from</span>(<span class="ident">from</span>));
                             }
                         }
                     }
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">prev</span>.<span class="ident">is_empty</span>() {
                         <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">demultiplexer_addresses</span>[<span class="kw-2">&amp;</span><span class="ident">demux_coord</span>].<span class="ident">clone</span>();
                         <span class="kw">let</span> (<span class="ident">demux</span>, <span class="ident">join_handle</span>) <span class="op">=</span>
-                            <span class="ident">DemultiplexingReceiver</span>::<span class="ident">new</span>(<span class="ident">demux_coord</span>, <span class="ident">address</span>, <span class="ident">prev</span>.<span class="ident">len</span>());
+                            <span class="ident">DemultiplexingReceiver::new</span>(<span class="ident">demux_coord</span>, <span class="ident">address</span>, <span class="ident">prev</span>.<span class="ident">len</span>());
                         <span class="self">self</span>.<span class="ident">join_handles</span>.<span class="ident">push</span>(<span class="ident">join_handle</span>);
                         <span class="ident">demuxes</span>.<span class="ident">insert</span>(<span class="ident">demux_coord</span>, <span class="ident">demux</span>);
                     } <span class="kw">else</span> {
-                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Demultiplexer of {} is useless since it has no previous remote block, ignoring...&quot;</span>, <span class="ident">demux_coord</span>);
+                        <span class="macro">debug!</span>(<span class="string">&quot;Demultiplexer of {} is useless since it has no previous remote block, ignoring...&quot;</span>, <span class="ident">demux_coord</span>);
                     }
                 }
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">demux</span>) <span class="op">=</span> <span class="ident">demuxes</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">demux_coord</span>) {
@@ -999,35 +999,35 @@
         }
         <span class="self">self</span>.<span class="ident">receivers</span>
             .<span class="ident">entry</span>::<span class="op">&lt;</span><span class="ident">ReceiverKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-            .<span class="ident">or_insert_with</span>(<span class="ident">Default</span>::<span class="ident">default</span>)
+            .<span class="ident">or_insert_with</span>(<span class="ident">Default::default</span>)
             .<span class="ident">insert</span>(<span class="ident">receiver_endpoint</span>, <span class="ident">receiver</span>);
 
         <span class="comment">// create the sending part of the channel</span>
         <span class="kw">let</span> <span class="ident">sender</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">sender_metadata</span>.<span class="ident">is_remote</span> {
             <span class="comment">// this channel ends to a remote host: connect it to the multiplexer</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ExecutionRuntime</span>::<span class="ident">Remote</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>.<span class="ident">runtime</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ExecutionRuntime::Remote</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>.<span class="ident">runtime</span> {
                 <span class="kw">let</span> <span class="ident">muxers</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">multiplexers</span>
                     .<span class="ident">entry</span>::<span class="op">&lt;</span><span class="ident">MultiplexingSenderKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                    .<span class="ident">or_insert_with</span>(<span class="ident">Default</span>::<span class="ident">default</span>);
-                <span class="kw">let</span> <span class="ident">demux_coord</span> <span class="op">=</span> <span class="ident">DemuxCoord</span>::<span class="ident">from</span>(<span class="ident">receiver_endpoint</span>);
-                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">map_entry</span>)]</span>
+                    .<span class="ident">or_insert_with</span>(<span class="ident">Default::default</span>);
+                <span class="kw">let</span> <span class="ident">demux_coord</span> <span class="op">=</span> <span class="ident">DemuxCoord::from</span>(<span class="ident">receiver_endpoint</span>);
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::map_entry</span>)]</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">muxers</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">demux_coord</span>) {
                     <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">demultiplexer_addresses</span>[<span class="kw-2">&amp;</span><span class="ident">demux_coord</span>].<span class="ident">clone</span>();
-                    <span class="kw">let</span> (<span class="ident">mux</span>, <span class="ident">join_handle</span>) <span class="op">=</span> <span class="ident">MultiplexingSender</span>::<span class="ident">new</span>(<span class="ident">demux_coord</span>, <span class="ident">address</span>);
+                    <span class="kw">let</span> (<span class="ident">mux</span>, <span class="ident">join_handle</span>) <span class="op">=</span> <span class="ident">MultiplexingSender::new</span>(<span class="ident">demux_coord</span>, <span class="ident">address</span>);
                     <span class="self">self</span>.<span class="ident">join_handles</span>.<span class="ident">push</span>(<span class="ident">join_handle</span>);
                     <span class="ident">muxers</span>.<span class="ident">insert</span>(<span class="ident">demux_coord</span>, <span class="ident">mux</span>);
                 }
-                <span class="ident">NetworkSender</span>::<span class="ident">remote</span>(<span class="ident">receiver_endpoint</span>, <span class="ident">muxers</span>[<span class="kw-2">&amp;</span><span class="ident">demux_coord</span>].<span class="ident">clone</span>())
+                <span class="ident">NetworkSender::remote</span>(<span class="ident">receiver_endpoint</span>, <span class="ident">muxers</span>[<span class="kw-2">&amp;</span><span class="ident">demux_coord</span>].<span class="ident">clone</span>())
             } <span class="kw">else</span> {
-                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Sender is marked as remote, but the runtime is not&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">&quot;Sender is marked as remote, but the runtime is not&quot;</span>);
             }
         } <span class="kw">else</span> {
             <span class="ident">local_sender</span>
         };
         <span class="self">self</span>.<span class="ident">senders</span>
             .<span class="ident">entry</span>::<span class="op">&lt;</span><span class="ident">SenderKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-            .<span class="ident">or_insert_with</span>(<span class="ident">Default</span>::<span class="ident">default</span>)
+            .<span class="ident">or_insert_with</span>(<span class="ident">Default::default</span>)
             .<span class="ident">insert</span>(<span class="ident">receiver_endpoint</span>, <span class="ident">sender</span>);
     }
 
@@ -1045,7 +1045,7 @@
         <span class="kw">let</span> <span class="ident">from_remote</span> <span class="op">=</span> <span class="ident">from</span>.<span class="ident">host_id</span> <span class="op">!</span><span class="op">=</span> <span class="ident">host_id</span>;
         <span class="kw">let</span> <span class="ident">to_remote</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">host_id</span> <span class="op">!</span><span class="op">=</span> <span class="ident">host_id</span>;
 
-        <span class="macro">debug</span><span class="macro">!</span>(
+        <span class="macro">debug!</span>(
             <span class="string">&quot;New connection: {} (remote={}) -&gt; {} (remote={})&quot;</span>,
             <span class="ident">from</span>, <span class="ident">from_remote</span>, <span class="ident">to</span>, <span class="ident">to_remote</span>
         );
@@ -1071,10 +1071,10 @@
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">receiver_endpoint</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint</span>::<span class="ident">new</span>(<span class="ident">to</span>, <span class="ident">from</span>.<span class="ident">block_id</span>);
+        <span class="kw">let</span> <span class="ident">receiver_endpoint</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint::new</span>(<span class="ident">to</span>, <span class="ident">from</span>.<span class="ident">block_id</span>);
         <span class="self">self</span>.<span class="ident">senders_metadata</span>
             .<span class="ident">entry</span>(<span class="ident">receiver_endpoint</span>)
-            .<span class="ident">or_insert_with</span>(<span class="ident">Default</span>::<span class="ident">default</span>);
+            .<span class="ident">or_insert_with</span>(<span class="ident">Default::default</span>);
 
         <span class="comment">// we want to connect to a remote: this sender should be remote</span>
         <span class="kw">if</span> <span class="ident">to_remote</span> {
@@ -1088,7 +1088,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prev</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">coord</span>) {
             <span class="ident">prev</span>.<span class="ident">clone</span>()
         } <span class="kw">else</span> {
-            <span class="macro">vec</span><span class="macro">!</span>[]
+            <span class="macro">vec!</span>[]
         }
     }
 
@@ -1097,7 +1097,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">replicas</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">block_replicas</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">block_id</span>) {
             <span class="ident">replicas</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>()
         } <span class="kw">else</span> {
-            <span class="macro">vec</span><span class="macro">!</span>[]
+            <span class="macro">vec!</span>[]
         }
     }
 
@@ -1108,19 +1108,19 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Internally this computes the mapping between `DemuxCoord` and actual TCP port.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finalize_topology</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ExecutionRuntime</span>::<span class="ident">Remote</span>(<span class="ident">config</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>.<span class="ident">runtime</span> {
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ExecutionRuntime::Remote</span>(<span class="ident">config</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>.<span class="ident">runtime</span> {
             <span class="ident">config</span>
         } <span class="kw">else</span> {
             <span class="kw">return</span>;
         };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">coords</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">coords</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
         <span class="kw">for</span> (<span class="kw-2">&amp;</span>(<span class="ident">from</span>, <span class="ident">_typ</span>), <span class="ident">to</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">next</span>.<span class="ident">iter</span>() {
             <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">to</span>, <span class="ident">_fragile</span>) <span class="kw">in</span> <span class="ident">to</span> {
-                <span class="kw">let</span> <span class="ident">coord</span> <span class="op">=</span> <span class="ident">DemuxCoord</span>::<span class="ident">new</span>(<span class="ident">from</span>, <span class="ident">to</span>);
+                <span class="kw">let</span> <span class="ident">coord</span> <span class="op">=</span> <span class="ident">DemuxCoord::new</span>(<span class="ident">from</span>, <span class="ident">to</span>);
                 <span class="ident">coords</span>.<span class="ident">insert</span>(<span class="ident">coord</span>);
             }
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">used_ports</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">HostId</span>, <span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">used_ports</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">HostId</span>, <span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
         <span class="comment">// sort the coords in order to have a deterministic assignment between all the hosts</span>
         <span class="kw">for</span> <span class="ident">coord</span> <span class="kw">in</span> <span class="ident">coords</span>.<span class="ident">into_iter</span>().<span class="ident">sorted</span>() {
             <span class="kw">let</span> <span class="ident">host_id</span> <span class="op">=</span> <span class="ident">coord</span>.<span class="ident">coord</span>.<span class="ident">host_id</span>;
@@ -1129,7 +1129,7 @@
             <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <span class="ident">host</span>.<span class="ident">base_port</span> <span class="op">+</span> <span class="kw-2">*</span><span class="ident">port_offset</span>;
             <span class="kw-2">*</span><span class="ident">port_offset</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> (<span class="ident">host</span>.<span class="ident">address</span>.<span class="ident">clone</span>(), <span class="ident">port</span>);
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Demultiplexer of {} is at {:?}&quot;</span>, <span class="ident">coord</span>, <span class="ident">address</span>);
+            <span class="macro">debug!</span>(<span class="string">&quot;Demultiplexer of {} is at {:?}&quot;</span>, <span class="ident">coord</span>, <span class="ident">address</span>);
             <span class="self">self</span>.<span class="ident">demultiplexer_addresses</span>.<span class="ident">insert</span>(<span class="ident">coord</span>, <span class="ident">address</span>);
         }
     }
@@ -1137,84 +1137,84 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_topology</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">topology</span> <span class="op">=</span> <span class="string">&quot;Execution graph:&quot;</span>.<span class="ident">to_owned</span>();
         <span class="kw">for</span> ((<span class="ident">coord</span>, <span class="ident">_typ</span>), <span class="ident">next</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">next</span>.<span class="ident">iter</span>().<span class="ident">sorted</span>() {
-            <span class="ident">topology</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\n  {}:&quot;</span>, <span class="ident">coord</span>);
+            <span class="ident">topology</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\n  {}:&quot;</span>, <span class="ident">coord</span>);
             <span class="kw">for</span> (<span class="ident">next</span>, <span class="ident">fragile</span>) <span class="kw">in</span> <span class="ident">next</span>.<span class="ident">iter</span>().<span class="ident">sorted</span>() {
-                <span class="ident">topology</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot; {}{}&quot;</span>, <span class="ident">next</span>, <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">fragile</span> { <span class="string">&quot;*&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> });
+                <span class="ident">topology</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot; {}{}&quot;</span>, <span class="ident">next</span>, <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">fragile</span> { <span class="string">&quot;*&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> });
             }
         }
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">topology</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">topology</span>);
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
+    <span class="kw">use</span> <span class="ident">std::fmt::Debug</span>;
+    <span class="kw">use</span> <span class="ident">std::io::Write</span>;
 
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">network</span>::<span class="ident">NetworkMessage</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">StreamElement</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">scheduler</span>::<span class="ident">HostId</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::network::NetworkMessage</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::StreamElement</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::scheduler::HostId</span>;
 
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="kw">fn</span> <span class="ident">build_message</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NetworkMessage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">NetworkMessage</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">StreamElement</span>::<span class="ident">Item</span>(<span class="ident">t</span>)], <span class="ident">Coord</span>::<span class="ident">default</span>())
+        <span class="ident">NetworkMessage::new</span>(<span class="macro">vec!</span>[<span class="ident">StreamElement::Item</span>(<span class="ident">t</span>)], <span class="ident">Coord::default</span>())
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_local_topology</span>() {
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">EnvironmentConfig</span>::<span class="ident">local</span>(<span class="number">4</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">topology</span> <span class="op">=</span> <span class="ident">NetworkTopology</span>::<span class="ident">new</span>(<span class="ident">config</span>);
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">EnvironmentConfig::local</span>(<span class="number">4</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">topology</span> <span class="op">=</span> <span class="ident">NetworkTopology::new</span>(<span class="ident">config</span>);
 
         <span class="comment">// s1 [b0, h0] -&gt; r1 [b2, h0] (endpoint 1) type=i32</span>
         <span class="comment">// s2 [b1, h0] -&gt; r1 [b2, h0] (endpoint 2) type=u64</span>
         <span class="comment">// s2 [b1, h0] -&gt; r2 [b3, h0] (endpoint 3) type=u64</span>
 
-        <span class="kw">let</span> <span class="ident">sender1</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">sender2</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">receiver1</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">receiver2</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">sender1</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">sender2</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">receiver1</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">receiver2</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>);
 
-        <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">sender1</span>, <span class="ident">receiver1</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
-        <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">sender2</span>, <span class="ident">receiver1</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
-        <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">sender2</span>, <span class="ident">receiver2</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
+        <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">sender1</span>, <span class="ident">receiver1</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
+        <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">sender2</span>, <span class="ident">receiver1</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
+        <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">sender2</span>, <span class="ident">receiver2</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
         <span class="ident">topology</span>.<span class="ident">finalize_topology</span>();
 
-        <span class="kw">let</span> <span class="ident">endpoint1</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint</span>::<span class="ident">new</span>(<span class="ident">receiver1</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">endpoint2</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint</span>::<span class="ident">new</span>(<span class="ident">receiver1</span>, <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">endpoint3</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint</span>::<span class="ident">new</span>(<span class="ident">receiver2</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">endpoint1</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint::new</span>(<span class="ident">receiver1</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">endpoint2</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint::new</span>(<span class="ident">receiver1</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">endpoint3</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint::new</span>(<span class="ident">receiver2</span>, <span class="number">1</span>);
 
         <span class="kw">let</span> <span class="ident">tx1</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_senders</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(<span class="ident">sender1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tx1</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">tx1</span>.<span class="ident">len</span>(), <span class="number">1</span>);
         <span class="ident">tx1</span>[<span class="kw-2">&amp;</span><span class="ident">endpoint1</span>].<span class="ident">send</span>(<span class="ident">build_message</span>(<span class="number">123i32</span>)).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">tx2</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_senders</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(<span class="ident">sender2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tx2</span>.<span class="ident">len</span>(), <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">tx2</span>.<span class="ident">len</span>(), <span class="number">2</span>);
         <span class="ident">tx2</span>[<span class="kw-2">&amp;</span><span class="ident">endpoint2</span>].<span class="ident">send</span>(<span class="ident">build_message</span>(<span class="number">666u64</span>)).<span class="ident">unwrap</span>();
         <span class="ident">tx2</span>[<span class="kw-2">&amp;</span><span class="ident">endpoint3</span>].<span class="ident">send</span>(<span class="ident">build_message</span>(<span class="number">42u64</span>)).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">rx1</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_receiver</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(<span class="ident">endpoint1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">rx1</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>().<span class="ident">batch</span>(),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">StreamElement</span>::<span class="ident">Item</span>(<span class="number">123i32</span>)]
+            <span class="macro">vec!</span>[<span class="ident">StreamElement::Item</span>(<span class="number">123i32</span>)]
         );
 
         <span class="kw">let</span> <span class="ident">rx2</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_receiver</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(<span class="ident">endpoint2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">rx2</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>().<span class="ident">batch</span>(),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">StreamElement</span>::<span class="ident">Item</span>(<span class="number">666u64</span>)]
+            <span class="macro">vec!</span>[<span class="ident">StreamElement::Item</span>(<span class="number">666u64</span>)]
         );
 
         <span class="kw">let</span> <span class="ident">rx3</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_receiver</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(<span class="ident">endpoint3</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">rx3</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>().<span class="ident">batch</span>(),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">StreamElement</span>::<span class="ident">Item</span>(<span class="number">42u64</span>)]
+            <span class="macro">vec!</span>[<span class="ident">StreamElement::Item</span>(<span class="number">42u64</span>)]
         );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_remote_topology</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">tempfile::NamedTempFile::new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">config_yaml</span> <span class="op">=</span> <span class="string">&quot;hosts:\n&quot;</span>.<span class="ident">to_string</span>()
             <span class="op">+</span> <span class="string">&quot; - address: 127.0.0.1\n&quot;</span>
             <span class="op">+</span> <span class="string">&quot;   base_port: 21841\n&quot;</span>
@@ -1223,7 +1223,7 @@
             <span class="op">+</span> <span class="string">&quot;   base_port: 31258\n&quot;</span>
             <span class="op">+</span> <span class="string">&quot;   num_cores: 1\n&quot;</span>;
         <span class="ident">config</span>.<span class="ident">write_all</span>(<span class="ident">config_yaml</span>.<span class="ident">as_bytes</span>()).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">EnvironmentConfig</span>::<span class="ident">remote</span>(<span class="ident">config</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">EnvironmentConfig::remote</span>(<span class="ident">config</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
 
         <span class="comment">// s1 [b0, h0, r0] -&gt; r1 [b2, h1, r0] (endpoint 1) type=i32</span>
         <span class="comment">// s2 [b0, h1, r0] -&gt; r1 [b2, h1, r0] (endpoint 1) type=i32</span>
@@ -1235,62 +1235,62 @@
         <span class="kw">let</span> <span class="ident">run</span> <span class="op">=</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">config</span>: <span class="ident">EnvironmentConfig</span>, <span class="ident">host</span>: <span class="ident">HostId</span><span class="op">|</span> {
             <span class="ident">config</span>.<span class="ident">host_id</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">host</span>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">topology</span> <span class="op">=</span> <span class="ident">NetworkTopology</span>::<span class="ident">new</span>(<span class="ident">config</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">topology</span> <span class="op">=</span> <span class="ident">NetworkTopology::new</span>(<span class="ident">config</span>);
 
-            <span class="kw">let</span> <span class="ident">s1</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-            <span class="kw">let</span> <span class="ident">s2</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>);
-            <span class="kw">let</span> <span class="ident">s3</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>);
-            <span class="kw">let</span> <span class="ident">s4</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>);
+            <span class="kw">let</span> <span class="ident">s1</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+            <span class="kw">let</span> <span class="ident">s2</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>);
+            <span class="kw">let</span> <span class="ident">s3</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>);
+            <span class="kw">let</span> <span class="ident">s4</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>);
 
-            <span class="kw">let</span> <span class="ident">r1</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">2</span>, <span class="number">1</span>, <span class="number">0</span>);
-            <span class="kw">let</span> <span class="ident">r2</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">2</span>, <span class="number">1</span>, <span class="number">1</span>);
+            <span class="kw">let</span> <span class="ident">r1</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">2</span>, <span class="number">1</span>, <span class="number">0</span>);
+            <span class="kw">let</span> <span class="ident">r2</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">2</span>, <span class="number">1</span>, <span class="number">1</span>);
 
-            <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">s1</span>, <span class="ident">r1</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
-            <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">s2</span>, <span class="ident">r1</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
-            <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">s3</span>, <span class="ident">r1</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
-            <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">s4</span>, <span class="ident">r1</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
-            <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">s3</span>, <span class="ident">r2</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
-            <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">s4</span>, <span class="ident">r2</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
+            <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">s1</span>, <span class="ident">r1</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
+            <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">s2</span>, <span class="ident">r1</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
+            <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">s3</span>, <span class="ident">r1</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
+            <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">s4</span>, <span class="ident">r1</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
+            <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">s3</span>, <span class="ident">r2</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
+            <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">s4</span>, <span class="ident">r2</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
             <span class="ident">topology</span>.<span class="ident">finalize_topology</span>();
 
-            <span class="kw">let</span> <span class="ident">endpoint1</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint</span>::<span class="ident">new</span>(<span class="ident">r1</span>, <span class="number">0</span>);
-            <span class="kw">let</span> <span class="ident">endpoint2</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint</span>::<span class="ident">new</span>(<span class="ident">r1</span>, <span class="number">1</span>);
-            <span class="kw">let</span> <span class="ident">endpoint3</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint</span>::<span class="ident">new</span>(<span class="ident">r2</span>, <span class="number">1</span>);
+            <span class="kw">let</span> <span class="ident">endpoint1</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint::new</span>(<span class="ident">r1</span>, <span class="number">0</span>);
+            <span class="kw">let</span> <span class="ident">endpoint2</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint::new</span>(<span class="ident">r1</span>, <span class="number">1</span>);
+            <span class="kw">let</span> <span class="ident">endpoint3</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint::new</span>(<span class="ident">r2</span>, <span class="number">1</span>);
 
             <span class="kw">if</span> <span class="ident">s1</span>.<span class="ident">host_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">host</span> {
                 <span class="kw">let</span> <span class="ident">tx1</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_senders</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(<span class="ident">s1</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tx1</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tx1</span>.<span class="ident">len</span>(), <span class="number">1</span>);
                 <span class="ident">tx1</span>[<span class="kw-2">&amp;</span><span class="ident">endpoint1</span>].<span class="ident">send</span>(<span class="ident">build_message</span>(<span class="number">123i32</span>)).<span class="ident">unwrap</span>();
             }
 
             <span class="kw">if</span> <span class="ident">s2</span>.<span class="ident">host_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">host</span> {
                 <span class="kw">let</span> <span class="ident">tx2</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_senders</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(<span class="ident">s2</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tx2</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tx2</span>.<span class="ident">len</span>(), <span class="number">1</span>);
                 <span class="ident">tx2</span>[<span class="kw-2">&amp;</span><span class="ident">endpoint1</span>].<span class="ident">send</span>(<span class="ident">build_message</span>(<span class="number">456i32</span>)).<span class="ident">unwrap</span>();
             }
 
             <span class="kw">if</span> <span class="ident">s3</span>.<span class="ident">host_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">host</span> {
                 <span class="kw">let</span> <span class="ident">tx3</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_senders</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(<span class="ident">s3</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tx3</span>.<span class="ident">len</span>(), <span class="number">2</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tx3</span>.<span class="ident">len</span>(), <span class="number">2</span>);
                 <span class="ident">tx3</span>[<span class="kw-2">&amp;</span><span class="ident">endpoint2</span>].<span class="ident">send</span>(<span class="ident">build_message</span>(<span class="number">666u64</span>)).<span class="ident">unwrap</span>();
                 <span class="ident">tx3</span>[<span class="kw-2">&amp;</span><span class="ident">endpoint3</span>].<span class="ident">send</span>(<span class="ident">build_message</span>(<span class="number">42u64</span>)).<span class="ident">unwrap</span>();
             }
 
             <span class="kw">if</span> <span class="ident">s4</span>.<span class="ident">host_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">host</span> {
                 <span class="kw">let</span> <span class="ident">tx4</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_senders</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(<span class="ident">s4</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tx4</span>.<span class="ident">len</span>(), <span class="number">2</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tx4</span>.<span class="ident">len</span>(), <span class="number">2</span>);
                 <span class="ident">tx4</span>[<span class="kw-2">&amp;</span><span class="ident">endpoint2</span>].<span class="ident">send</span>(<span class="ident">build_message</span>(<span class="number">111u64</span>)).<span class="ident">unwrap</span>();
                 <span class="ident">tx4</span>[<span class="kw-2">&amp;</span><span class="ident">endpoint3</span>].<span class="ident">send</span>(<span class="ident">build_message</span>(<span class="number">4242u64</span>)).<span class="ident">unwrap</span>();
             }
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">join_handles</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">join_handles</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
             <span class="kw">if</span> <span class="ident">endpoint1</span>.<span class="ident">coord</span>.<span class="ident">host_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">host</span> {
                 <span class="kw">let</span> <span class="ident">rx1</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_receiver</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(<span class="ident">endpoint1</span>);
                 <span class="ident">join_handles</span>.<span class="ident">push</span>(
-                    <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
+                    <span class="ident">std::thread::Builder::new</span>()
                         .<span class="ident">name</span>(<span class="string">&quot;rx1&quot;</span>.<span class="ident">into</span>())
-                        .<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">receiver</span>(<span class="ident">rx1</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="number">123i32</span>, <span class="number">456i32</span>]))
+                        .<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">receiver</span>(<span class="ident">rx1</span>, <span class="macro">vec!</span>[<span class="number">123i32</span>, <span class="number">456i32</span>]))
                         .<span class="ident">unwrap</span>(),
                 );
             }
@@ -1298,9 +1298,9 @@
             <span class="kw">if</span> <span class="ident">endpoint2</span>.<span class="ident">coord</span>.<span class="ident">host_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">host</span> {
                 <span class="kw">let</span> <span class="ident">rx2</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_receiver</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(<span class="ident">endpoint2</span>);
                 <span class="ident">join_handles</span>.<span class="ident">push</span>(
-                    <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
+                    <span class="ident">std::thread::Builder::new</span>()
                         .<span class="ident">name</span>(<span class="string">&quot;rx2&quot;</span>.<span class="ident">into</span>())
-                        .<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">receiver</span>(<span class="ident">rx2</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="number">111u64</span>, <span class="number">666u64</span>]))
+                        .<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">receiver</span>(<span class="ident">rx2</span>, <span class="macro">vec!</span>[<span class="number">111u64</span>, <span class="number">666u64</span>]))
                         .<span class="ident">unwrap</span>(),
                 );
             }
@@ -1308,9 +1308,9 @@
             <span class="kw">if</span> <span class="ident">endpoint3</span>.<span class="ident">coord</span>.<span class="ident">host_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">host</span> {
                 <span class="kw">let</span> <span class="ident">rx3</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_receiver</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(<span class="ident">endpoint3</span>);
                 <span class="ident">join_handles</span>.<span class="ident">push</span>(
-                    <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
+                    <span class="ident">std::thread::Builder::new</span>()
                         .<span class="ident">name</span>(<span class="string">&quot;rx3&quot;</span>.<span class="ident">into</span>())
-                        .<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">receiver</span>(<span class="ident">rx3</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="number">42u64</span>, <span class="number">4242u64</span>]))
+                        .<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">receiver</span>(<span class="ident">rx3</span>, <span class="macro">vec!</span>[<span class="number">42u64</span>, <span class="number">4242u64</span>]))
                         .<span class="ident">unwrap</span>(),
                 );
             }
@@ -1322,11 +1322,11 @@
         };
 
         <span class="kw">let</span> <span class="ident">config0</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">join0</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">join0</span> <span class="op">=</span> <span class="ident">std::thread::Builder::new</span>()
             .<span class="ident">name</span>(<span class="string">&quot;host0&quot;</span>.<span class="ident">into</span>())
             .<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">run</span>(<span class="ident">config0</span>, <span class="number">0</span>))
             .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">join1</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">join1</span> <span class="op">=</span> <span class="ident">std::thread::Builder::new</span>()
             .<span class="ident">name</span>(<span class="string">&quot;host1&quot;</span>.<span class="ident">into</span>())
             .<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">run</span>(<span class="ident">config</span>, <span class="number">1</span>))
             .<span class="ident">unwrap</span>();
@@ -1341,31 +1341,31 @@
             .<span class="ident">flatten</span>()
             .<span class="ident">sorted</span>()
             .<span class="ident">collect_vec</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">res</span>,
-            <span class="ident">expected</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">StreamElement</span>::<span class="ident">Item</span>).<span class="ident">collect_vec</span>()
+            <span class="ident">expected</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">StreamElement::Item</span>).<span class="ident">collect_vec</span>()
         );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_multiple_output_types</span>() {
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">EnvironmentConfig</span>::<span class="ident">local</span>(<span class="number">4</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">topology</span> <span class="op">=</span> <span class="ident">NetworkTopology</span>::<span class="ident">new</span>(<span class="ident">config</span>);
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">EnvironmentConfig::local</span>(<span class="number">4</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">topology</span> <span class="op">=</span> <span class="ident">NetworkTopology::new</span>(<span class="ident">config</span>);
 
         <span class="comment">// s1 [b0, h0] -&gt; r1 [b1, h0] (endpoint 1) type=i32</span>
         <span class="comment">// s2 [b0, h0] -&gt; r2 [b2, h0] (endpoint 2) type=u64</span>
 
-        <span class="kw">let</span> <span class="ident">sender1</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">sender2</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">receiver1</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">receiver2</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">sender1</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">sender2</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">receiver1</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">receiver2</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>);
 
-        <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">sender1</span>, <span class="ident">receiver1</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
-        <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">sender2</span>, <span class="ident">receiver2</span>, <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
+        <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">sender1</span>, <span class="ident">receiver1</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
+        <span class="ident">topology</span>.<span class="ident">connect</span>(<span class="ident">sender2</span>, <span class="ident">receiver2</span>, <span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(), <span class="bool-val">false</span>);
         <span class="ident">topology</span>.<span class="ident">finalize_topology</span>();
 
-        <span class="kw">let</span> <span class="ident">endpoint1</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint</span>::<span class="ident">new</span>(<span class="ident">receiver1</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">endpoint2</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint</span>::<span class="ident">new</span>(<span class="ident">receiver2</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">endpoint1</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint::new</span>(<span class="ident">receiver1</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">endpoint2</span> <span class="op">=</span> <span class="ident">ReceiverEndpoint::new</span>(<span class="ident">receiver2</span>, <span class="number">0</span>);
 
         <span class="kw">let</span> <span class="ident">tx1</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_sender</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(<span class="ident">endpoint1</span>);
         <span class="ident">tx1</span>.<span class="ident">send</span>(<span class="ident">build_message</span>(<span class="number">123i32</span>)).<span class="ident">unwrap</span>();
@@ -1374,18 +1374,18 @@
         <span class="ident">tx2</span>.<span class="ident">send</span>(<span class="ident">build_message</span>(<span class="number">666u64</span>)).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">rx1</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_receiver</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(<span class="ident">endpoint1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">rx1</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>().<span class="ident">batch</span>(),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">StreamElement</span>::<span class="ident">Item</span>(<span class="number">123i32</span>)]
+            <span class="macro">vec!</span>[<span class="ident">StreamElement::Item</span>(<span class="number">123i32</span>)]
         );
 
         <span class="kw">let</span> <span class="ident">rx2</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">get_receiver</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(<span class="ident">endpoint2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">rx2</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>().<span class="ident">batch</span>(),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">StreamElement</span>::<span class="ident">Item</span>(<span class="number">666u64</span>)]
+            <span class="macro">vec!</span>[<span class="ident">StreamElement::Item</span>(<span class="number">666u64</span>)]
         );
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rstream" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rstream" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

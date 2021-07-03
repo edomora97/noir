@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/scheduler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scheduler.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rstream/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rstream/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -429,22 +429,22 @@
 <span id="426">426</span>
 <span id="427">427</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">any</span>::<span class="ident">TypeId</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">JoinHandle</span>;
+<span class="kw">use</span> <span class="ident">std::any::TypeId</span>;
+<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
+<span class="kw">use</span> <span class="ident">std::sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
+<span class="kw">use</span> <span class="ident">std::thread::JoinHandle</span>;
 
-<span class="kw">use</span> <span class="ident">itertools</span>::<span class="ident">Itertools</span>;
+<span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">block</span>::{<span class="ident">wait_structure</span>, <span class="ident">BatchMode</span>, <span class="ident">BlockStructure</span>, <span class="ident">InnerBlock</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">channel</span>::{<span class="ident">BoundedChannelSender</span>, <span class="ident">UnboundedChannelReceiver</span>, <span class="ident">UnboundedChannelSender</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">config</span>::{<span class="ident">EnvironmentConfig</span>, <span class="ident">ExecutionRuntime</span>, <span class="ident">LocalRuntimeConfig</span>, <span class="ident">RemoteRuntimeConfig</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">network</span>::{<span class="ident">Coord</span>, <span class="ident">NetworkTopology</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::{<span class="ident">Data</span>, <span class="ident">Operator</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">profiler</span>::{<span class="ident">wait_profiler</span>, <span class="ident">ProfilerResult</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">stream</span>::<span class="ident">BlockId</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">worker</span>::<span class="ident">spawn_worker</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">TracingData</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::block</span>::{<span class="ident">wait_structure</span>, <span class="ident">BatchMode</span>, <span class="ident">BlockStructure</span>, <span class="ident">InnerBlock</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::channel</span>::{<span class="ident">BoundedChannelSender</span>, <span class="ident">UnboundedChannelReceiver</span>, <span class="ident">UnboundedChannelSender</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::config</span>::{<span class="ident">EnvironmentConfig</span>, <span class="ident">ExecutionRuntime</span>, <span class="ident">LocalRuntimeConfig</span>, <span class="ident">RemoteRuntimeConfig</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::network</span>::{<span class="ident">Coord</span>, <span class="ident">NetworkTopology</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator</span>::{<span class="ident">Data</span>, <span class="ident">Operator</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::profiler</span>::{<span class="ident">wait_profiler</span>, <span class="ident">ProfilerResult</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::stream::BlockId</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::worker::spawn_worker</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::TracingData</span>;
 
 <span class="doccomment">/// The identifier of an host.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">HostId</span> <span class="op">=</span> <span class="ident">usize</span>;
@@ -518,13 +518,13 @@
 
 <span class="kw">impl</span> <span class="ident">Scheduler</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">EnvironmentConfig</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">UnboundedChannelReceiver</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">UnboundedChannelReceiver::new</span>();
         <span class="self">Self</span> {
-            <span class="ident">next_blocks</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">prev_blocks</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">block_info</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">start_handles</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">network</span>: <span class="ident">NetworkTopology</span>::<span class="ident">new</span>(<span class="ident">config</span>.<span class="ident">clone</span>()),
+            <span class="ident">next_blocks</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">prev_blocks</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">block_info</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">start_handles</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">network</span>: <span class="ident">NetworkTopology::new</span>(<span class="ident">config</span>.<span class="ident">clone</span>()),
             <span class="ident">config</span>,
             <span class="ident">block_structure_sender</span>: <span class="ident">sender</span>,
             <span class="ident">block_structure_receiver</span>: <span class="ident">receiver</span>,
@@ -544,7 +544,7 @@
     {
         <span class="kw">let</span> <span class="ident">block_id</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">id</span>;
         <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">block_info</span>(<span class="kw-2">&amp;</span><span class="ident">block</span>);
-        <span class="macro">info</span><span class="macro">!</span>(
+        <span class="macro">info!</span>(
             <span class="string">&quot;Adding new block id={}: {} {:?}&quot;</span>,
             <span class="ident">block_id</span>,
             <span class="ident">block</span>.<span class="ident">to_string</span>(),
@@ -552,7 +552,7 @@
         );
 
         <span class="comment">// duplicate the block in the execution graph</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blocks</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blocks</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">let</span> <span class="ident">local_replicas</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">replicas</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">host_id</span>.<span class="ident">unwrap</span>());
         <span class="ident">blocks</span>.<span class="ident">reserve</span>(<span class="ident">local_replicas</span>.<span class="ident">len</span>());
         <span class="kw">if</span> <span class="op">!</span><span class="ident">local_replicas</span>.<span class="ident">is_empty</span>() {
@@ -577,7 +577,7 @@
 
     <span class="doccomment">/// Connect a pair of blocks inside the job graph.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">connect_blocks</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">from</span>: <span class="ident">BlockId</span>, <span class="ident">to</span>: <span class="ident">BlockId</span>, <span class="ident">typ</span>: <span class="ident">TypeId</span>) {
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Connecting blocks: {} -&gt; {}&quot;</span>, <span class="ident">from</span>, <span class="ident">to</span>);
+        <span class="macro">info!</span>(<span class="string">&quot;Connecting blocks: {} -&gt; {}&quot;</span>, <span class="ident">from</span>, <span class="ident">to</span>);
         <span class="self">self</span>.<span class="ident">next_blocks</span>
             .<span class="ident">entry</span>(<span class="ident">from</span>)
             .<span class="ident">or_default</span>()
@@ -587,7 +587,7 @@
 
     <span class="doccomment">/// Connect a pair of blocks inside the job graph, marking the connection as fragile.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">connect_blocks_fragile</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">from</span>: <span class="ident">BlockId</span>, <span class="ident">to</span>: <span class="ident">BlockId</span>, <span class="ident">typ</span>: <span class="ident">TypeId</span>) {
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Connecting blocks: {} -&gt; {} (fragile)&quot;</span>, <span class="ident">from</span>, <span class="ident">to</span>);
+        <span class="macro">info!</span>(<span class="string">&quot;Connecting blocks: {} -&gt; {} (fragile)&quot;</span>, <span class="ident">from</span>, <span class="ident">to</span>);
         <span class="self">self</span>.<span class="ident">next_blocks</span>
             .<span class="ident">entry</span>(<span class="ident">from</span>)
             .<span class="ident">or_default</span>()
@@ -597,10 +597,10 @@
 
     <span class="doccomment">/// Start the computation returning the list of handles used to join the workers.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">num_blocks</span>: <span class="ident">usize</span>) {
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Starting scheduler: {:#?}&quot;</span>, <span class="self">self</span>.<span class="ident">config</span>);
+        <span class="macro">info!</span>(<span class="string">&quot;Starting scheduler: {:#?}&quot;</span>, <span class="self">self</span>.<span class="ident">config</span>);
         <span class="self">self</span>.<span class="ident">log_topology</span>();
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="self">self</span>.<span class="ident">block_info</span>.<span class="ident">len</span>(),
             <span class="ident">num_blocks</span>,
             <span class="string">&quot;Some streams do not have a sink attached: {} streams created, but only {} registered&quot;</span>,
@@ -612,9 +612,9 @@
         <span class="self">self</span>.<span class="ident">network</span>.<span class="ident">finalize_topology</span>();
         <span class="self">self</span>.<span class="ident">network</span>.<span class="ident">log_topology</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">join</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">join</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
-        <span class="kw">let</span> <span class="ident">network</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">network</span>));
+        <span class="kw">let</span> <span class="ident">network</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="self">self</span>.<span class="ident">network</span>));
         <span class="comment">// start the execution</span>
         <span class="kw">for</span> (<span class="ident">coord</span>, <span class="ident">handle</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">start_handles</span> {
             <span class="kw">let</span> <span class="ident">block_info</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">block_info</span>[<span class="kw-2">&amp;</span><span class="ident">coord</span>.<span class="ident">block_id</span>];
@@ -641,7 +641,7 @@
         <span class="kw">let</span> <span class="ident">block_structures</span> <span class="op">=</span> <span class="ident">wait_structure</span>(<span class="self">self</span>.<span class="ident">block_structure_receiver</span>);
         <span class="kw">let</span> <span class="ident">profiler_results</span> <span class="op">=</span> <span class="ident">wait_profiler</span>();
 
-        <span class="self">Self</span>::<span class="ident">log_tracing_data</span>(<span class="ident">block_structures</span>, <span class="ident">profiler_results</span>);
+        <span class="self">Self</span><span class="ident">::log_tracing_data</span>(<span class="ident">block_structures</span>, <span class="ident">profiler_results</span>);
     }
 
     <span class="doccomment">/// Get the ids of the previous blocks of a given block in the job graph</span>
@@ -682,35 +682,35 @@
             <span class="ident">structures</span>,
             <span class="ident">profilers</span>,
         };
-        <span class="macro">debug</span><span class="macro">!</span>(
+        <span class="macro">debug!</span>(
             <span class="string">&quot;__RSTREAM2_TRACING_DATA__ {}&quot;</span>,
-            <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>).<span class="ident">unwrap</span>()
+            <span class="ident">serde_json::to_string</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>).<span class="ident">unwrap</span>()
         );
     }
 
     <span class="kw">fn</span> <span class="ident">log_topology</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">topology</span> <span class="op">=</span> <span class="string">&quot;Job graph:&quot;</span>.<span class="ident">to_string</span>();
         <span class="kw">for</span> (<span class="ident">block_id</span>, <span class="ident">block</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">block_info</span>.<span class="ident">iter</span>() {
-            <span class="ident">topology</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\n  {}: {}&quot;</span>, <span class="ident">block_id</span>, <span class="ident">block</span>.<span class="ident">repr</span>);
+            <span class="ident">topology</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\n  {}: {}&quot;</span>, <span class="ident">block_id</span>, <span class="ident">block</span>.<span class="ident">repr</span>);
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">next_blocks</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">block_id</span>) {
                 <span class="kw">let</span> <span class="ident">sorted</span> <span class="op">=</span> <span class="ident">next</span>
                     .<span class="ident">iter</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">x</span>, <span class="kw">_</span>, <span class="ident">fragile</span>)<span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">x</span>, <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">fragile</span> { <span class="string">&quot;*&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> }))
+                    .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">x</span>, <span class="kw">_</span>, <span class="ident">fragile</span>)<span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">x</span>, <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">fragile</span> { <span class="string">&quot;*&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> }))
                     .<span class="ident">sorted</span>()
                     .<span class="ident">collect_vec</span>();
-                <span class="ident">topology</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\n    -&gt; {:?}&quot;</span>, <span class="ident">sorted</span>);
+                <span class="ident">topology</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\n    -&gt; {:?}&quot;</span>, <span class="ident">sorted</span>);
             }
         }
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">topology</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">topology</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assignments</span> <span class="op">=</span> <span class="string">&quot;Replicas:&quot;</span>.<span class="ident">to_string</span>();
         <span class="kw">for</span> (<span class="ident">block_id</span>, <span class="ident">block</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">block_info</span>.<span class="ident">iter</span>() {
-            <span class="ident">assignments</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\n  {}:&quot;</span>, <span class="ident">block_id</span>);
+            <span class="ident">assignments</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\n  {}:&quot;</span>, <span class="ident">block_id</span>);
             <span class="kw">let</span> <span class="ident">replicas</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">replicas</span>.<span class="ident">values</span>().<span class="ident">flatten</span>().<span class="ident">sorted</span>();
             <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">coord</span> <span class="kw">in</span> <span class="ident">replicas</span> {
-                <span class="ident">assignments</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">coord</span>);
+                <span class="ident">assignments</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">coord</span>);
             }
         }
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">assignments</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">assignments</span>);
     }
 
     <span class="doccomment">/// Extract the `SchedulerBlockInfo` of a block.</span>
@@ -722,8 +722,8 @@
         <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>.<span class="ident">runtime</span> {
-            <span class="ident">ExecutionRuntime</span>::<span class="ident">Local</span>(<span class="ident">local</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">local_block_info</span>(<span class="ident">block</span>, <span class="ident">local</span>),
-            <span class="ident">ExecutionRuntime</span>::<span class="ident">Remote</span>(<span class="ident">remote</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">remote_block_info</span>(<span class="ident">block</span>, <span class="ident">remote</span>),
+            <span class="ident">ExecutionRuntime::Local</span>(<span class="ident">local</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">local_block_info</span>(<span class="ident">block</span>, <span class="ident">local</span>),
+            <span class="ident">ExecutionRuntime::Remote</span>(<span class="ident">remote</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">remote_block_info</span>(<span class="ident">block</span>, <span class="ident">remote</span>),
         }
     }
 
@@ -742,19 +742,19 @@
         <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">max_parallelism</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">scheduler_requirements</span>.<span class="ident">max_parallelism</span>;
-        <span class="kw">let</span> <span class="ident">num_replicas</span> <span class="op">=</span> <span class="ident">local</span>.<span class="ident">num_cores</span>.<span class="ident">min</span>(<span class="ident">max_parallelism</span>.<span class="ident">unwrap_or</span>(<span class="ident">usize</span>::<span class="ident">MAX</span>));
-        <span class="macro">debug</span><span class="macro">!</span>(
+        <span class="kw">let</span> <span class="ident">num_replicas</span> <span class="op">=</span> <span class="ident">local</span>.<span class="ident">num_cores</span>.<span class="ident">min</span>(<span class="ident">max_parallelism</span>.<span class="ident">unwrap_or</span>(<span class="ident">usize::MAX</span>));
+        <span class="macro">debug!</span>(
             <span class="string">&quot;Block {} will have {} local replicas (max_parallelism={:?}), is_only_one_strategy={}&quot;</span>,
             <span class="ident">block</span>.<span class="ident">id</span>, <span class="ident">num_replicas</span>, <span class="ident">max_parallelism</span>, <span class="ident">block</span>.<span class="ident">is_only_one_strategy</span>
         );
         <span class="kw">let</span> <span class="ident">host_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">host_id</span>.<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">replicas</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">num_replicas</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="ident">block</span>.<span class="ident">id</span>, <span class="ident">host_id</span>, <span class="ident">r</span>));
-        <span class="kw">let</span> <span class="ident">global_ids</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">num_replicas</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> (<span class="ident">Coord</span>::<span class="ident">new</span>(<span class="ident">block</span>.<span class="ident">id</span>, <span class="ident">host_id</span>, <span class="ident">r</span>), <span class="ident">r</span>));
+        <span class="kw">let</span> <span class="ident">replicas</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">num_replicas</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">Coord::new</span>(<span class="ident">block</span>.<span class="ident">id</span>, <span class="ident">host_id</span>, <span class="ident">r</span>));
+        <span class="kw">let</span> <span class="ident">global_ids</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">num_replicas</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> (<span class="ident">Coord::new</span>(<span class="ident">block</span>.<span class="ident">id</span>, <span class="ident">host_id</span>, <span class="ident">r</span>), <span class="ident">r</span>));
         <span class="ident">SchedulerBlockInfo</span> {
             <span class="ident">block_id</span>: <span class="ident">block</span>.<span class="ident">id</span>,
             <span class="ident">repr</span>: <span class="ident">block</span>.<span class="ident">to_string</span>(),
             <span class="ident">num_replicas</span>,
-            <span class="ident">replicas</span>: <span class="macro">vec</span><span class="macro">!</span>[(<span class="ident">host_id</span>, <span class="ident">replicas</span>.<span class="ident">collect</span>())].<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
+            <span class="ident">replicas</span>: <span class="macro">vec!</span>[(<span class="ident">host_id</span>, <span class="ident">replicas</span>.<span class="ident">collect</span>())].<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
             <span class="ident">global_ids</span>: <span class="ident">global_ids</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
             <span class="ident">batch_mode</span>: <span class="ident">block</span>.<span class="ident">batch_mode</span>,
             <span class="ident">is_only_one_strategy</span>: <span class="ident">block</span>.<span class="ident">is_only_one_strategy</span>,
@@ -774,17 +774,17 @@
         <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">max_parallelism</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">scheduler_requirements</span>.<span class="ident">max_parallelism</span>;
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Allocating block {} on remote runtime&quot;</span>, <span class="ident">block</span>.<span class="ident">id</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;Allocating block {} on remote runtime&quot;</span>, <span class="ident">block</span>.<span class="ident">id</span>);
         <span class="comment">// number of replicas we can assign at most</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remaining_replicas</span> <span class="op">=</span> <span class="ident">max_parallelism</span>.<span class="ident">unwrap_or</span>(<span class="ident">usize</span>::<span class="ident">MAX</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remaining_replicas</span> <span class="op">=</span> <span class="ident">max_parallelism</span>.<span class="ident">unwrap_or</span>(<span class="ident">usize::MAX</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">num_replicas</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replicas</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global_ids</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replicas</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap::default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global_ids</span> <span class="op">=</span> <span class="ident">HashMap::default</span>();
         <span class="comment">// FIXME: if the next_strategy of the previous blocks are OnlyOne the replicas of this block</span>
         <span class="comment">//        must be in the same hosts are the previous blocks.</span>
         <span class="kw">for</span> (<span class="ident">host_id</span>, <span class="ident">host_info</span>) <span class="kw">in</span> <span class="ident">remote</span>.<span class="ident">hosts</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">let</span> <span class="ident">num_host_replicas</span> <span class="op">=</span> <span class="ident">host_info</span>.<span class="ident">num_cores</span>.<span class="ident">min</span>(<span class="ident">remaining_replicas</span>);
-            <span class="macro">debug</span><span class="macro">!</span>(
+            <span class="macro">debug!</span>(
                 <span class="string">&quot;Block {} will have {} replicas on {} (max_parallelism={:?}, num_cores={})&quot;</span>,
                 <span class="ident">block</span>.<span class="ident">id</span>,
                 <span class="ident">num_host_replicas</span>,
@@ -795,7 +795,7 @@
             <span class="ident">remaining_replicas</span> <span class="op">-</span><span class="op">=</span> <span class="ident">num_host_replicas</span>;
             <span class="kw">let</span> <span class="ident">host_replicas</span> <span class="op">=</span> <span class="ident">replicas</span>.<span class="ident">entry</span>(<span class="ident">host_id</span>).<span class="ident">or_default</span>();
             <span class="kw">for</span> <span class="ident">replica_id</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">num_host_replicas</span> {
-                <span class="kw">let</span> <span class="ident">coord</span> <span class="op">=</span> <span class="ident">Coord</span>::<span class="ident">new</span>(<span class="ident">block</span>.<span class="ident">id</span>, <span class="ident">host_id</span>, <span class="ident">replica_id</span>);
+                <span class="kw">let</span> <span class="ident">coord</span> <span class="op">=</span> <span class="ident">Coord::new</span>(<span class="ident">block</span>.<span class="ident">id</span>, <span class="ident">host_id</span>, <span class="ident">replica_id</span>);
                 <span class="ident">host_replicas</span>.<span class="ident">push</span>(<span class="ident">coord</span>);
                 <span class="ident">global_ids</span>.<span class="ident">insert</span>(<span class="ident">coord</span>, <span class="ident">num_replicas</span> <span class="op">+</span> <span class="ident">replica_id</span>);
             }
@@ -834,15 +834,15 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">config</span>::<span class="ident">EnvironmentConfig</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">environment</span>::<span class="ident">StreamEnvironment</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">operator</span>::<span class="ident">source</span>::<span class="ident">IteratorSource</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::config::EnvironmentConfig</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::environment::StreamEnvironment</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::source::IteratorSource</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">should_panic</span>(<span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;Some streams do not have a sink attached&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">test_scheduler_panic_on_missing_sink</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">StreamEnvironment</span>::<span class="ident">new</span>(<span class="ident">EnvironmentConfig</span>::<span class="ident">local</span>(<span class="number">4</span>));
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">IteratorSource</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>].<span class="ident">into_iter</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">StreamEnvironment::new</span>(<span class="ident">EnvironmentConfig::local</span>(<span class="number">4</span>));
+        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">IteratorSource::new</span>(<span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>].<span class="ident">into_iter</span>());
         <span class="kw">let</span> <span class="ident">_stream</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">stream</span>(<span class="ident">source</span>);
         <span class="ident">env</span>.<span class="ident">execute</span>();
     }
@@ -850,12 +850,12 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">should_panic</span>(<span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;Some streams do not have a sink attached&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">test_scheduler_panic_on_missing_sink_shuffle</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">StreamEnvironment</span>::<span class="ident">new</span>(<span class="ident">EnvironmentConfig</span>::<span class="ident">local</span>(<span class="number">4</span>));
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">IteratorSource</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>].<span class="ident">into_iter</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">StreamEnvironment::new</span>(<span class="ident">EnvironmentConfig::local</span>(<span class="number">4</span>));
+        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">IteratorSource::new</span>(<span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>].<span class="ident">into_iter</span>());
         <span class="kw">let</span> <span class="ident">_stream</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">stream</span>(<span class="ident">source</span>).<span class="ident">shuffle</span>();
         <span class="ident">env</span>.<span class="ident">execute</span>();
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rstream" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rstream" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
