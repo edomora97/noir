@@ -78,12 +78,18 @@
 <span id="75">75</span>
 <span id="76">76</span>
 <span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::block</span>::{<span class="ident">BlockStructure</span>, <span class="ident">OperatorKind</span>, <span class="ident">OperatorStructure</span>};
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::source::Source</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator</span>::{<span class="ident">Data</span>, <span class="ident">Operator</span>, <span class="ident">StreamElement</span>};
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::scheduler::ExecutionMetadata</span>;
 
+<span class="doccomment">/// Source that consumes an iterator and emits all its elements into the stream.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The iterator will be consumed **only from one replica**, therefore this source is not parallel.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Derivative</span>)]</span>
 <span class="attribute">#[<span class="ident">derivative</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorSource</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">It</span><span class="op">&gt;</span>

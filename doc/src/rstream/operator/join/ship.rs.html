@@ -153,6 +153,18 @@
 <span id="150">150</span>
 <span id="151">151</span>
 <span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::type_complexity</span>)]</span>
 
@@ -245,10 +257,16 @@
         }
     }
 
+    <span class="doccomment">/// Select _local hash_ as local strategy.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// An hash-table will be used to generate the join tuples.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_hash</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinStreamLocalHash</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out1</span>, <span class="ident">Out2</span>, <span class="ident">Keyer1</span>, <span class="ident">Keyer2</span>, <span class="ident">ShipHash</span><span class="op">&gt;</span> {
         <span class="ident">JoinStreamLocalHash::new</span>(<span class="self">self</span>.<span class="ident">inner</span>, <span class="self">self</span>.<span class="ident">keyer1</span>, <span class="self">self</span>.<span class="ident">keyer2</span>)
     }
 
+    <span class="doccomment">/// Select _sort-merge_ as local strategy.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The tuples will be collected and sorted, then the tuples are generated.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_sort_merge</span>(
         <span class="self">self</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinStreamLocalSortMerge</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out1</span>, <span class="ident">Out2</span>, <span class="ident">Keyer1</span>, <span class="ident">Keyer2</span>, <span class="ident">ShipHash</span><span class="op">&gt;</span>
@@ -288,6 +306,9 @@
         }
     }
 
+    <span class="doccomment">/// Select _local hash_ as local strategy.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// An hash-table will be used to generate the join tuples.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_hash</span>(
         <span class="self">self</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinStreamLocalHash</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out1</span>, <span class="ident">Out2</span>, <span class="ident">Keyer1</span>, <span class="ident">Keyer2</span>, <span class="ident">ShipBroadcastRight</span><span class="op">&gt;</span>
@@ -297,6 +318,9 @@
         <span class="ident">JoinStreamLocalHash::new</span>(<span class="self">self</span>.<span class="ident">inner</span>, <span class="self">self</span>.<span class="ident">keyer1</span>, <span class="self">self</span>.<span class="ident">keyer2</span>)
     }
 
+    <span class="doccomment">/// Select _sort-merge_ as local strategy.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The tuples will be collected and sorted, then the tuples are generated.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_sort_merge</span>(
         <span class="self">self</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinStreamLocalSortMerge</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out1</span>, <span class="ident">Out2</span>, <span class="ident">Keyer1</span>, <span class="ident">Keyer2</span>, <span class="ident">ShipBroadcastRight</span><span class="op">&gt;</span>

@@ -16,20 +16,24 @@
 <span id="13">13</span>
 <span id="14">14</span>
 <span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">channel</span>::<span class="kw-2">*</span>;
+<span class="doccomment">//! Utility traits and structures related to the source operators.</span>
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::csv</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">file</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iterator</span>::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::source::csv</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator</span>::{<span class="ident">Data</span>, <span class="ident">Operator</span>};
 
-<span class="kw">mod</span> <span class="ident">channel</span>;
 <span class="kw">mod</span> <span class="ident">csv</span>;
 <span class="kw">mod</span> <span class="ident">file</span>;
 <span class="kw">mod</span> <span class="ident">iterator</span>;
 
+<span class="doccomment">/// This trait marks all the operators that can be used as sinks.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span><span class="op">&gt;</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// The maximum parallelism offered by this operator.</span>
     <span class="kw">fn</span> <span class="ident">get_max_parallelism</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
 }
 </pre></div>

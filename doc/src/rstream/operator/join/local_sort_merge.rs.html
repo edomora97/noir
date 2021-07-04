@@ -344,6 +344,64 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::type_complexity</span>)]</span>
 
@@ -610,6 +668,15 @@
     <span class="ident">Keyer1</span>: <span class="ident">KeyerFn</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out1</span><span class="op">&gt;</span>,
     <span class="ident">Keyer2</span>: <span class="ident">KeyerFn</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out2</span><span class="op">&gt;</span>,
 {
+    <span class="doccomment">/// Finalize the join operator by specifying that this is an _inner join_.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Given two stream, create a stream with all the pairs (left item from the left stream, right</span>
+    <span class="doccomment">/// item from the right), such that the key obtained with `keyer1` on an item from the left is</span>
+    <span class="doccomment">/// equal to the key obtained with `keyer2` on an item from the right.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is an inner join, very similarly to `SELECT a, b FROM a JOIN b ON keyer1(a) = keyer2(b)`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will split the current block.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner</span>(
         <span class="self">self</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">KeyedStream</span><span class="op">&lt;</span>
@@ -625,6 +692,19 @@
         <span class="ident">KeyedStream</span>(<span class="ident">inner</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">key</span>, (<span class="ident">lhs</span>, <span class="ident">rhs</span>))<span class="op">|</span> (<span class="ident">key</span>, (<span class="ident">lhs</span>.<span class="ident">unwrap</span>(), <span class="ident">rhs</span>.<span class="ident">unwrap</span>()))))
     }
 
+    <span class="doccomment">/// Finalize the join operator by specifying that this is a _left join_.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Given two stream, create a stream with all the pairs (left item from the left stream, right</span>
+    <span class="doccomment">/// item from the right), such that the key obtained with `keyer1` on an item from the left is</span>
+    <span class="doccomment">/// equal to the key obtained with `keyer2` on an item from the right.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is a **left** join, meaning that if an item from the left does not find and element</span>
+    <span class="doccomment">/// from the right with which make a pair, an extra pair `(left, None)` is generated. If you</span>
+    <span class="doccomment">/// want to have a _right_ join, you just need to switch the two sides and use a left join.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is very similar to `SELECT a, b FROM a LEFT JOIN b ON keyer1(a) = keyer2(b)`.    </span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will split the current block.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left</span>(
         <span class="self">self</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">KeyedStream</span><span class="op">&lt;</span>
@@ -640,6 +720,20 @@
         <span class="ident">KeyedStream</span>(<span class="ident">inner</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">key</span>, (<span class="ident">lhs</span>, <span class="ident">rhs</span>))<span class="op">|</span> (<span class="ident">key</span>, (<span class="ident">lhs</span>.<span class="ident">unwrap</span>(), <span class="ident">rhs</span>))))
     }
 
+    <span class="doccomment">/// Finalize the join operator by specifying that this is an _outer join_.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Given two stream, create a stream with all the pairs (left item from the left stream, right</span>
+    <span class="doccomment">/// item from the right), such that the key obtained with `keyer1` on an item from the left is</span>
+    <span class="doccomment">/// equal to the key obtained with `keyer2` on an item from the right.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is a **full-outer** join, meaning that if an item from the left does not find and element</span>
+    <span class="doccomment">/// from the right with which make a pair, an extra pair `(left, None)` is generated. Similarly</span>
+    <span class="doccomment">/// if an element from the right does not appear in any pair, a new one is generated with</span>
+    <span class="doccomment">/// `(None, right)`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is very similar to `SELECT a, b FROM a FULL OUTER JOIN b ON keyer1(a) = keyer2(b)`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will split the current block.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">outer</span>(
         <span class="self">self</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">KeyedStream</span><span class="op">&lt;</span>
@@ -662,6 +756,15 @@
     <span class="ident">Keyer1</span>: <span class="ident">KeyerFn</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out1</span><span class="op">&gt;</span>,
     <span class="ident">Keyer2</span>: <span class="ident">KeyerFn</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out2</span><span class="op">&gt;</span>,
 {
+    <span class="doccomment">/// Finalize the join operator by specifying that this is an _inner join_.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Given two stream, create a stream with all the pairs (left item from the left stream, right</span>
+    <span class="doccomment">/// item from the right), such that the key obtained with `keyer1` on an item from the left is</span>
+    <span class="doccomment">/// equal to the key obtained with `keyer2` on an item from the right.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is an inner join, very similarly to `SELECT a, b FROM a JOIN b ON keyer1(a) = keyer2(b)`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will split the current block.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner</span>(
         <span class="self">self</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span>
@@ -675,6 +778,19 @@
             .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">key</span>, (<span class="ident">lhs</span>, <span class="ident">rhs</span>))<span class="op">|</span> (<span class="ident">key</span>, (<span class="ident">lhs</span>.<span class="ident">unwrap</span>(), <span class="ident">rhs</span>.<span class="ident">unwrap</span>())))
     }
 
+    <span class="doccomment">/// Finalize the join operator by specifying that this is a _left join_.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Given two stream, create a stream with all the pairs (left item from the left stream, right</span>
+    <span class="doccomment">/// item from the right), such that the key obtained with `keyer1` on an item from the left is</span>
+    <span class="doccomment">/// equal to the key obtained with `keyer2` on an item from the right.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is a **left** join, meaning that if an item from the left does not find and element</span>
+    <span class="doccomment">/// from the right with which make a pair, an extra pair `(left, None)` is generated. If you</span>
+    <span class="doccomment">/// want to have a _right_ join, you just need to switch the two sides and use a left join.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is very similar to `SELECT a, b FROM a LEFT JOIN b ON keyer1(a) = keyer2(b)`.    </span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will split the current block.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left</span>(
         <span class="self">self</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span>

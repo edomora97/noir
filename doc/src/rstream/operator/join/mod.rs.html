@@ -291,10 +291,65 @@
 <span id="288">288</span>
 <span id="289">289</span>
 <span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! Some utility structures for building the join operators.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The actual operators are [`Stream::join`], [`Stream::left_join`], [`Stream::outer_join`] and</span>
+<span class="doccomment">//! [`Stream::join_with`].</span>
+
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::join::ship</span>::{<span class="ident">JoinStreamShipBroadcastRight</span>, <span class="ident">JoinStreamShipHash</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">local_hash::JoinStreamLocalHash</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">local_sort_merge::JoinStreamLocalSortMerge</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ship</span>::{<span class="ident">ShipBroadcastRight</span>, <span class="ident">ShipHash</span>, <span class="ident">ShipStrategy</span>};
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::join::ship</span>::{<span class="ident">JoinStreamShipBroadcastRight</span>, <span class="ident">JoinStreamShipHash</span>};
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator</span>::{<span class="ident">Data</span>, <span class="ident">DataKey</span>, <span class="ident">ExchangeData</span>, <span class="ident">KeyerFn</span>, <span class="ident">Operator</span>};
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::stream</span>::{<span class="ident">KeyValue</span>, <span class="ident">KeyedStream</span>, <span class="ident">Stream</span>};
 
@@ -374,7 +429,7 @@
     <span class="doccomment">/// item from the right), such that the key obtained with `keyer1` on an item from the left is</span>
     <span class="doccomment">/// equal to the key obtained with `keyer2` on an item from the right.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This is an inner join, very similarly to `SELECT a, b FROM a JOIN b ON keyer1(a) = keyer2(b)`.</span>
+    <span class="doccomment">/// This is an inner join, very similar to `SELECT a, b FROM a JOIN b ON keyer1(a) = keyer2(b)`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is a shortcut for: `self.join_with(...).ship_hash().local_hash().inner()`.</span>
     <span class="doccomment">///</span>
@@ -426,7 +481,7 @@
     <span class="doccomment">/// from the right with which make a pair, an extra pair `(left, None)` is generated. If you</span>
     <span class="doccomment">/// want to have a _right_ join, you just need to switch the two sides and use a left join.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This is very similarly to `SELECT a, b FROM a LEFT JOIN b ON keyer1(a) = keyer2(b)`.</span>
+    <span class="doccomment">/// This is very similar to `SELECT a, b FROM a LEFT JOIN b ON keyer1(a) = keyer2(b)`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is a shortcut for: `self.join_with(...).ship_hash().local_hash().left()`.</span>
     <span class="doccomment">///</span>
@@ -479,7 +534,7 @@
     <span class="doccomment">/// if an element from the right does not appear in any pair, a new one is generated with</span>
     <span class="doccomment">/// `(None, right)`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This is very similarly to `SELECT a, b FROM a FULL OUTER JOIN b ON keyer1(a) = keyer2(b)`.</span>
+    <span class="doccomment">/// This is very similar to `SELECT a, b FROM a FULL OUTER JOIN b ON keyer1(a) = keyer2(b)`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is a shortcut for: `self.join_with(...).ship_hash().local_hash().outer()`.</span>
     <span class="doccomment">///</span>
@@ -523,6 +578,43 @@
             .<span class="ident">outer</span>()
     }
 
+    <span class="doccomment">/// Given two streams, start building a join operator.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The returned type allows you to customize the behaviour of the join. You can select which</span>
+    <span class="doccomment">/// ship strategy and which local strategy to use.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Ship strategies**</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// - _hash_: the hash of the key is used to select where to send the elements</span>
+    <span class="doccomment">/// - _broadcast right_: the left stream is left locally, while the right stream is broadcasted</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Local strategies**</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// - _hash_: build an hashmap to match the tuples</span>
+    <span class="doccomment">/// - _sort and merge_: collect all the tuples, sort them by key and merge them</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The first strategy to select is the _ship strategy_. After choosing that you have to select</span>
+    <span class="doccomment">/// the local strategy.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s1 = env.stream(IteratorSource::new(0..5u8));</span>
+    <span class="doccomment">/// let s2 = env.stream(IteratorSource::new(0..5i32));</span>
+    <span class="doccomment">/// let j = s1.join_with(s2, |n| (n % 5) as i32, |n| n % 2).ship_hash();</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s1 = env.stream(IteratorSource::new(0..5u8));</span>
+    <span class="doccomment">/// let s2 = env.stream(IteratorSource::new(0..5i32));</span>
+    <span class="doccomment">/// let j = s1.join_with(s2, |n| (n % 5) as i32, |n| n % 2).ship_broadcast_right();</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_with</span><span class="op">&lt;</span><span class="ident">Out2</span>: <span class="ident">ExchangeData</span>, <span class="ident">OperatorChain2</span>, <span class="ident">Key</span>, <span class="ident">Keyer1</span>, <span class="ident">Keyer2</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">rhs</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out2</span>, <span class="ident">OperatorChain2</span><span class="op">&gt;</span>,

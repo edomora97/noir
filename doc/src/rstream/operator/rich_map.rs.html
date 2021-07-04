@@ -112,6 +112,65 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
@@ -200,6 +259,61 @@
 <span class="kw">where</span>
     <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
+    <span class="doccomment">/// Map the elements of the stream into new elements. The mapping function can be stateful.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is equivalent to [`Stream::map`] but with a stateful function.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Since the mapping function can be stateful, it is a `FnMut`. This allows expressing simple</span>
+    <span class="doccomment">/// algorithms with very few lines of code (see examples).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The mapping function is _cloned_ inside each replica, and they will not share state between</span>
+    <span class="doccomment">/// each other. If you want that only a single replica handles all the items you may want to</span>
+    <span class="doccomment">/// change the parallelism of this operator with [`Stream::max_parallelism`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is a simple implementation of the prefix-sum using a single replica (i.e. each element</span>
+    <span class="doccomment">/// is mapped to the sum of all the elements up to that point). Note that this won&#39;t work if</span>
+    <span class="doccomment">/// there are more replicas.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s = env.stream(IteratorSource::new((1..=5)));</span>
+    <span class="doccomment">/// let res = s.rich_map({</span>
+    <span class="doccomment">///     let mut sum = 0;</span>
+    <span class="doccomment">///     move |x| {</span>
+    <span class="doccomment">///         sum += x;</span>
+    <span class="doccomment">///         sum</span>
+    <span class="doccomment">///     }</span>
+    <span class="doccomment">/// }).collect_vec();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// env.execute();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(res.get().unwrap(), vec![1, 1 + 2, 1 + 2 + 3, 1 + 2 + 3 + 4, 1 + 2 + 3 + 4 + 5]);</span>
+    <span class="doccomment">/// ```    </span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This will enumerate all the elements that reach a replica. This is basically equivalent to</span>
+    <span class="doccomment">/// the `enumerate` function in Python.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s = env.stream(IteratorSource::new((1..=5)));</span>
+    <span class="doccomment">/// let res = s.rich_map({</span>
+    <span class="doccomment">///     let mut id = 0;</span>
+    <span class="doccomment">///     move |x| {</span>
+    <span class="doccomment">///         id += 1;</span>
+    <span class="doccomment">///         (id - 1, x)</span>
+    <span class="doccomment">///     }</span>
+    <span class="doccomment">/// }).collect_vec();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// env.execute();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(res.get().unwrap(), vec![(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)]);</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rich_map</span><span class="op">&lt;</span><span class="ident">NewOut</span>: <span class="ident">Data</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">NewOut</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">NewOut</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">Out</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NewOut</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -214,6 +328,10 @@
 <span class="kw">where</span>
     <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">KeyValue</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
+    <span class="doccomment">/// Map the elements of the stream into new elements. The mapping function can be stateful.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is exactly like [`Stream::rich_map`], but the function is cloned for each key. This</span>
+    <span class="doccomment">/// means that each key will have a unique mapping function (and therefore a unique state).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rich_map</span><span class="op">&lt;</span><span class="ident">NewOut</span>: <span class="ident">Data</span>, <span class="ident">F</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">f</span>: <span class="ident">F</span>,

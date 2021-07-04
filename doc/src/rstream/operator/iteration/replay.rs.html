@@ -267,6 +267,52 @@
 <span id="264">264</span>
 <span id="265">265</span>
 <span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::any::TypeId</span>;
 <span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>};
@@ -337,6 +383,52 @@
 <span class="kw">where</span>
     <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
+    <span class="doccomment">/// Construct an iterative dataflow where the input stream is repeatedly fed inside a cycle,</span>
+    <span class="doccomment">/// i.e. what comes into the cycle is _replayed_ at every iteration.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This iteration is stateful, this means that all the replicas have a read-only access to the</span>
+    <span class="doccomment">/// _iteration state_. The initial value of the state is given as parameter. When an iteration</span>
+    <span class="doccomment">/// ends all the elements are reduced locally at each replica producing a `DeltaUpdate`. Those</span>
+    <span class="doccomment">/// delta updates are later reduced on a single node that, using the `global_fold` function will</span>
+    <span class="doccomment">/// compute the state for the next iteration. This state is also used in `loop_condition` to</span>
+    <span class="doccomment">/// check whether the next iteration should start or not. `loop_condition` is also allowed to</span>
+    <span class="doccomment">/// mutate the state.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The initial value of `DeltaUpdate` is initialized with [`Default::default()`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The content of the loop has a new scope: it&#39;s defined by the `body` function that takes as</span>
+    <span class="doccomment">/// parameter the stream of data coming inside the iteration and a reference to the state. This</span>
+    <span class="doccomment">/// function should return the stream of the data that exits from the loop (that will be fed</span>
+    <span class="doccomment">/// back).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This construct produces a single stream with a single element: the final state of the</span>
+    <span class="doccomment">/// iteration.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: due to an internal limitation, it&#39;s not currently possible to add an iteration</span>
+    <span class="doccomment">/// operator when the stream has limited parallelism. This means, for example, that after a</span>
+    <span class="doccomment">/// non-parallel source you have to add a shuffle.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will split the current block.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s = env.stream(IteratorSource::new(0..3)).shuffle();</span>
+    <span class="doccomment">/// let state = s.replay(</span>
+    <span class="doccomment">///     3, // at most 3 iterations</span>
+    <span class="doccomment">///     0, // the initial state is zero</span>
+    <span class="doccomment">///     |s, state| s.map(|n| n + 10),</span>
+    <span class="doccomment">///     |delta: &amp;mut i32, n| *delta += n,</span>
+    <span class="doccomment">///     |state, delta| *state += delta,</span>
+    <span class="doccomment">///     |_state| true,</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">/// let state = state.collect_vec();</span>
+    <span class="doccomment">/// env.execute();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(state.get().unwrap(), vec![3 * (10 + 11 + 12)]);</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replay</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">DeltaUpdate</span>: <span class="ident">ExchangeData</span> <span class="op">+</span> <span class="ident">Default</span>, <span class="ident">State</span>: <span class="ident">ExchangeData</span>, <span class="ident">OperatorChain2</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
         <span class="ident">num_iterations</span>: <span class="ident">usize</span>,

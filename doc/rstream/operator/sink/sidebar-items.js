@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["StreamOutput",""]],"trait":[["Sink",""]]});
+initSidebarItems({"struct":[["StreamOutput","The result of a stream after the execution."]]});

@@ -136,6 +136,9 @@
 <span id="133">133</span>
 <span id="134">134</span>
 <span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::fs::File</span>;
 <span class="kw">use</span> <span class="ident">std::io::BufRead</span>;
@@ -148,6 +151,9 @@
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator</span>::{<span class="ident">Operator</span>, <span class="ident">StreamElement</span>};
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::scheduler::ExecutionMetadata</span>;
 
+<span class="doccomment">/// Source that reads a text file line-by-line.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The file is divided in chunks and is read concurrently by multiple replicas.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FileSource</span> {
     <span class="ident">path</span>: <span class="ident">PathBuf</span>,
