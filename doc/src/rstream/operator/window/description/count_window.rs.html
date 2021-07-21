@@ -163,6 +163,57 @@
 <span id="160">160</span>
 <span id="161">161</span>
 <span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
@@ -171,6 +222,13 @@
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::window</span>::{<span class="ident">Window</span>, <span class="ident">WindowDescription</span>, <span class="ident">WindowGenerator</span>};
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator</span>::{<span class="ident">Data</span>, <span class="ident">DataKey</span>, <span class="ident">StreamElement</span>, <span class="ident">Timestamp</span>};
 
+<span class="doccomment">/// Count windows divide elements into windows by counting them.</span>
+<span class="doccomment">/// They can be used with both timestamped and non-timestamped streams.</span>
+<span class="doccomment">/// When used with timestamped streams, elements are ordered according to their timestamps.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// There are two different kinds of count windows:</span>
+<span class="doccomment">///  - [`CountWindow::sliding`]</span>
+<span class="doccomment">///  - [`CountWindow::tumbling`]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CountWindow</span> {
     <span class="ident">size</span>: <span class="ident">NonZeroUsize</span>,
@@ -178,6 +236,29 @@
 }
 
 <span class="kw">impl</span> <span class="ident">CountWindow</span> {
+    <span class="doccomment">/// With sliding count windows, the first window contains the first `size` elements.</span>
+    <span class="doccomment">/// From then on, each window contains the same elements of the previous one, except that the</span>
+    <span class="doccomment">/// oldest `step` elements are replaced with new ones.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # use rstream::operator::window::CountWindow;</span>
+    <span class="doccomment">/// # use std::time::Duration;</span>
+    <span class="doccomment">/// # use itertools::Itertools;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s = env.stream(IteratorSource::new((0..5)));</span>
+    <span class="doccomment">/// let res = s</span>
+    <span class="doccomment">///     .window_all(CountWindow::sliding(3, 2))</span>
+    <span class="doccomment">///     .map(|window| window.cloned().collect_vec())</span>
+    <span class="doccomment">///     .collect_vec();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// env.execute();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut res = res.get().unwrap();</span>
+    <span class="doccomment">/// assert_eq!(res, vec![vec![0, 1, 2], vec![2, 3, 4], vec![4]]);</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sliding</span>(<span class="ident">size</span>: <span class="ident">usize</span>, <span class="ident">step</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">size</span>: <span class="ident">NonZeroUsize::new</span>(<span class="ident">size</span>).<span class="ident">expect</span>(<span class="string">&quot;CountWindow size must be positive&quot;</span>),
@@ -185,6 +266,27 @@
         }
     }
 
+    <span class="doccomment">/// Tumbling count windows are equivalent to sliding count windows with `step` equal to `size`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # use rstream::operator::window::CountWindow;</span>
+    <span class="doccomment">/// # use std::time::Duration;</span>
+    <span class="doccomment">/// # use itertools::Itertools;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s = env.stream(IteratorSource::new((0..5)));</span>
+    <span class="doccomment">/// let res = s</span>
+    <span class="doccomment">///     .window_all(CountWindow::tumbling(3))</span>
+    <span class="doccomment">///     .map(|window| window.cloned().collect_vec())</span>
+    <span class="doccomment">///     .collect_vec();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// env.execute();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut res = res.get().unwrap();</span>
+    <span class="doccomment">/// assert_eq!(res, vec![vec![0, 1, 2], vec![3, 4]]);</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tumbling</span>(<span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">CountWindow::sliding</span>(<span class="ident">size</span>, <span class="ident">size</span>)
     }

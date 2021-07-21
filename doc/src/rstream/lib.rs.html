@@ -69,6 +69,8 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! TODO:</span>
 <span class="doccomment">//!</span>
@@ -88,10 +90,12 @@
 
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">block::structure</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">block::BatchMode</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">config::EnvironmentConfig</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">environment::StreamEnvironment</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">operator::iteration::IterationStateHandle</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">scheduler::ExecutionMetadata</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">stream</span>::{<span class="ident">KeyValue</span>, <span class="ident">KeyedStream</span>, <span class="ident">KeyedWindowedStream</span>, <span class="ident">Stream</span>, <span class="ident">WindowedStream</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::block::BlockStructure</span>;
@@ -104,7 +108,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">block</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">channel</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">config</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">config</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">environment</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">network</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">operator</span>;
@@ -112,8 +116,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">runner</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">scheduler</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">stream</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">test</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">test</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">worker</span>;
 
 <span class="doccomment">/// Tracing information of the current execution.</span>

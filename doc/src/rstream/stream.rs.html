@@ -341,12 +341,16 @@
 <span id="338">338</span>
 <span id="339">339</span>
 <span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::any::TypeId</span>;
-<span class="kw">use</span> <span class="ident">std::cell::RefCell</span>;
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
-<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
+<span class="kw">use</span> <span class="ident">std::sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::block</span>::{<span class="ident">BatchMode</span>, <span class="ident">InnerBlock</span>, <span class="ident">NextStrategy</span>, <span class="ident">SchedulerRequirements</span>};
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::environment::StreamEnvironmentInner</span>;
@@ -382,7 +386,7 @@
     <span class="doccomment">/// The last block inside the stream.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">block</span>: <span class="ident">InnerBlock</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="ident">OperatorChain</span><span class="op">&gt;</span>,
     <span class="doccomment">/// A reference to the environment this stream lives in.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">env</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">StreamEnvironmentInner</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">env</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">StreamEnvironmentInner</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// A [`KeyedStream`] is like a set of [`Stream`]s, each of which partitioned by some `Key`. Internally</span>
@@ -401,14 +405,17 @@
 <span class="doccomment">/// assigned to the same key `()`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// These are the windows supported out-of-the-box:</span>
-<span class="doccomment">///  - [`EventTimeWindow::sliding`][crate::operator::window::EventTimeWindow::sliding]</span>
-<span class="doccomment">///  - [`EventTimeWindow::tumbling`][crate::operator::window::EventTimeWindow::tumbling]</span>
-<span class="doccomment">///  - [`EventTimeWindow::session`][crate::operator::window::EventTimeWindow::session]</span>
-<span class="doccomment">///  - [`ProcessingTimeWindow::sliding`][crate::operator::window::ProcessingTimeWindow::sliding]</span>
-<span class="doccomment">///  - [`ProcessingTimeWindow::tumbling`][crate::operator::window::ProcessingTimeWindow::tumbling]</span>
-<span class="doccomment">///  - [`ProcessingTimeWindow::session`][crate::operator::window::ProcessingTimeWindow::session]</span>
-<span class="doccomment">///  - [`CountWindow::sliding`][crate::operator::window::CountWindow::sliding]</span>
-<span class="doccomment">///  - [`CountWindow::tumbling`][crate::operator::window::CountWindow::tumbling]</span>
+<span class="doccomment">///  - [`EventTimeWindow`][crate::operator::window::EventTimeWindow]</span>
+<span class="doccomment">///     - [`EventTimeWindow::sliding`][crate::operator::window::EventTimeWindow::sliding]</span>
+<span class="doccomment">///     - [`EventTimeWindow::tumbling`][crate::operator::window::EventTimeWindow::tumbling]</span>
+<span class="doccomment">///     - [`EventTimeWindow::session`][crate::operator::window::EventTimeWindow::session]</span>
+<span class="doccomment">///  - [`ProcessingTimeWindow`][crate::operator::window::ProcessingTimeWindow]</span>
+<span class="doccomment">///     - [`ProcessingTimeWindow::sliding`][crate::operator::window::ProcessingTimeWindow::sliding]</span>
+<span class="doccomment">///     - [`ProcessingTimeWindow::tumbling`][crate::operator::window::ProcessingTimeWindow::tumbling]</span>
+<span class="doccomment">///     - [`ProcessingTimeWindow::session`][crate::operator::window::ProcessingTimeWindow::session]</span>
+<span class="doccomment">///  - [`CountWindow`][crate::operator::window::CountWindow]</span>
+<span class="doccomment">///     - [`CountWindow::sliding`][crate::operator::window::CountWindow::sliding]</span>
+<span class="doccomment">///     - [`CountWindow::tumbling`][crate::operator::window::CountWindow::tumbling]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// To apply a window to a [`Stream`], see [`Stream::window_all`].</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WindowedStream</span><span class="op">&lt;</span><span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span>, <span class="ident">WinOut</span>: <span class="ident">Data</span>, <span class="ident">WinDescr</span><span class="op">&gt;</span>
@@ -430,14 +437,17 @@
 <span class="doccomment">/// grouped into windows.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// These are the windows supported out-of-the-box:</span>
-<span class="doccomment">///  - [`EventTimeWindow::sliding`][crate::operator::window::EventTimeWindow::sliding]</span>
-<span class="doccomment">///  - [`EventTimeWindow::tumbling`][crate::operator::window::EventTimeWindow::tumbling]</span>
-<span class="doccomment">///  - [`EventTimeWindow::session`][crate::operator::window::EventTimeWindow::session]</span>
-<span class="doccomment">///  - [`ProcessingTimeWindow::sliding`][crate::operator::window::ProcessingTimeWindow::sliding]</span>
-<span class="doccomment">///  - [`ProcessingTimeWindow::tumbling`][crate::operator::window::ProcessingTimeWindow::tumbling]</span>
-<span class="doccomment">///  - [`ProcessingTimeWindow::session`][crate::operator::window::ProcessingTimeWindow::session]</span>
-<span class="doccomment">///  - [`CountWindow::sliding`][crate::operator::window::CountWindow::sliding]</span>
-<span class="doccomment">///  - [`CountWindow::tumbling`][crate::operator::window::CountWindow::tumbling]</span>
+<span class="doccomment">///  - [`EventTimeWindow`][crate::operator::window::EventTimeWindow]</span>
+<span class="doccomment">///     - [`EventTimeWindow::sliding`][crate::operator::window::EventTimeWindow::sliding]</span>
+<span class="doccomment">///     - [`EventTimeWindow::tumbling`][crate::operator::window::EventTimeWindow::tumbling]</span>
+<span class="doccomment">///     - [`EventTimeWindow::session`][crate::operator::window::EventTimeWindow::session]</span>
+<span class="doccomment">///  - [`ProcessingTimeWindow`][crate::operator::window::ProcessingTimeWindow]</span>
+<span class="doccomment">///     - [`ProcessingTimeWindow::sliding`][crate::operator::window::ProcessingTimeWindow::sliding]</span>
+<span class="doccomment">///     - [`ProcessingTimeWindow::tumbling`][crate::operator::window::ProcessingTimeWindow::tumbling]</span>
+<span class="doccomment">///     - [`ProcessingTimeWindow::session`][crate::operator::window::ProcessingTimeWindow::session]</span>
+<span class="doccomment">///  - [`CountWindow`][crate::operator::window::CountWindow]</span>
+<span class="doccomment">///     - [`CountWindow::sliding`][crate::operator::window::CountWindow::sliding]</span>
+<span class="doccomment">///     - [`CountWindow::tumbling`][crate::operator::window::CountWindow::tumbling]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// To apply a window to a [`KeyedStream`], see [`KeyedStream::window`].</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KeyedWindowedStream</span><span class="op">&lt;</span><span class="ident">Key</span>: <span class="ident">DataKey</span>, <span class="ident">Out</span>: <span class="ident">Data</span>, <span class="ident">OperatorChain</span>, <span class="ident">WinOut</span>: <span class="ident">Data</span>, <span class="ident">WinDescr</span><span class="op">&gt;</span>
@@ -460,7 +470,9 @@
     <span class="doccomment">/// `get_operator` is a function that is given the previous chain of operators and should return</span>
     <span class="doccomment">/// the new chain of operators. The new chain cannot be simply passed as argument since it is</span>
     <span class="doccomment">/// required to do a partial move of the `InnerBlock` structure.</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this is an advanced function that manipulates the block structure. Probably it is</span>
+    <span class="doccomment">/// not what you are looking for.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_operator</span><span class="op">&lt;</span><span class="ident">NewOut</span>: <span class="ident">Data</span>, <span class="ident">Op</span>, <span class="ident">GetOp</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">get_operator</span>: <span class="ident">GetOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">NewOut</span>, <span class="ident">Op</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">Op</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">NewOut</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -504,7 +516,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">old_stream</span> <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">get_end_operator</span>(<span class="ident">prev</span>, <span class="ident">next_strategy</span>.<span class="ident">clone</span>(), <span class="ident">batch_mode</span>));
         <span class="ident">old_stream</span>.<span class="ident">block</span>.<span class="ident">is_only_one_strategy</span> <span class="op">=</span> <span class="macro">matches!</span>(<span class="ident">next_strategy</span>, <span class="ident">NextStrategy::OnlyOne</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">old_stream</span>.<span class="ident">env</span>.<span class="ident">borrow_mut</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">old_stream</span>.<span class="ident">env</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">old_id</span> <span class="op">=</span> <span class="ident">old_stream</span>.<span class="ident">block</span>.<span class="ident">id</span>;
         <span class="kw">let</span> <span class="ident">new_id</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">new_block</span>();
         <span class="kw">let</span> <span class="ident">scheduler</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">scheduler_mut</span>();
@@ -600,7 +612,7 @@
         <span class="ident">old_stream1</span>.<span class="ident">block</span>.<span class="ident">is_only_one_strategy</span> <span class="op">=</span> <span class="ident">is_only_one1</span>;
         <span class="ident">old_stream2</span>.<span class="ident">block</span>.<span class="ident">is_only_one_strategy</span> <span class="op">=</span> <span class="ident">is_only_one2</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">old_stream1</span>.<span class="ident">env</span>.<span class="ident">borrow_mut</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">old_stream1</span>.<span class="ident">env</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">old_id1</span> <span class="op">=</span> <span class="ident">old_stream1</span>.<span class="ident">block</span>.<span class="ident">id</span>;
         <span class="kw">let</span> <span class="ident">old_id2</span> <span class="op">=</span> <span class="ident">old_stream2</span>.<span class="ident">block</span>.<span class="ident">id</span>;
         <span class="kw">let</span> <span class="ident">new_id</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">new_block</span>();
@@ -641,7 +653,7 @@
     <span class="doccomment">/// Clone the given block, taking care of connecting the new block to the same previous blocks</span>
     <span class="doccomment">/// of the original one.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env</span>.<span class="ident">borrow_mut</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">prev_nodes</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">scheduler_mut</span>().<span class="ident">prev_blocks</span>(<span class="self">self</span>.<span class="ident">block</span>.<span class="ident">id</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">new_id</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">new_block</span>();
 
@@ -661,7 +673,7 @@
     <span class="doccomment">/// Like `add_block` but without creating a new block. Therefore this closes the current stream</span>
     <span class="doccomment">/// and just add the last block to the scheduler.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">finalize_block</span>(<span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env</span>.<span class="ident">borrow_mut</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <span class="macro">info!</span>(<span class="string">&quot;Finalizing block id={}&quot;</span>, <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">id</span>);
         <span class="ident">env</span>.<span class="ident">scheduler_mut</span>().<span class="ident">add_block</span>(<span class="self">self</span>.<span class="ident">block</span>);
     }

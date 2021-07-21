@@ -455,17 +455,17 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExecutionMetadata</span> {
     <span class="doccomment">/// The coordinate of the block (it&#39;s id, replica id, ...).</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">coord</span>: <span class="ident">Coord</span>,
+    <span class="kw">pub</span> <span class="ident">coord</span>: <span class="ident">Coord</span>,
     <span class="doccomment">/// The list of replicas of this block.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">replicas</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Coord</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">replicas</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Coord</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The global identifier of the replica (from 0 to `replicas.len()-1`)</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">global_id</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">global_id</span>: <span class="ident">usize</span>,
     <span class="doccomment">/// The total number of previous blocks inside the execution graph.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">prev</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Coord</span>, <span class="ident">TypeId</span>)<span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">prev</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Coord</span>, <span class="ident">TypeId</span>)<span class="op">&gt;</span>,
     <span class="doccomment">/// A reference to the `NetworkTopology` that keeps the state of the network.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">network</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">NetworkTopology</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The batching mode to use inside this block.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">batch_mode</span>: <span class="ident">BatchMode</span>,
+    <span class="kw">pub</span> <span class="ident">batch_mode</span>: <span class="ident">BatchMode</span>,
 }
 
 <span class="doccomment">/// Handle that the scheduler uses to start the computation of a block.</span>

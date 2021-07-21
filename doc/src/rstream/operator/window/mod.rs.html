@@ -144,7 +144,12 @@
 <span id="141">141</span>
 <span id="142">142</span>
 <span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! The types related to the windowed streams.</span>
+
 <span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">aggregator</span>::<span class="kw-2">*</span>;
@@ -167,6 +172,7 @@
     <span class="doccomment">/// Construct a new window generator, ready to handle elements.</span>
     <span class="kw">fn</span> <span class="ident">new_generator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Generator</span>;
 
+    <span class="doccomment">/// String representation of the description.</span>
     <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span>;
 }
 

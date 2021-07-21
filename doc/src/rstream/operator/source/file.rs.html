@@ -139,6 +139,24 @@
 <span id="136">136</span>
 <span id="137">137</span>
 <span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::fs::File</span>;
 <span class="kw">use</span> <span class="ident">std::io::BufRead</span>;
@@ -165,6 +183,24 @@
 }
 
 <span class="kw">impl</span> <span class="ident">FileSource</span> {
+    <span class="doccomment">/// Create a new source that reads the lines from a text file.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The file is partitioned into as many chunks as replicas, each replica has to have the</span>
+    <span class="doccomment">/// **same** file in the same path. It is guaranteed that each line of the file is emitted by</span>
+    <span class="doccomment">/// exactly one replica.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: the file must be readable and its size must be available. This means that only</span>
+    <span class="doccomment">/// regular files can be read.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::FileSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let source = FileSource::new(&quot;/datasets/huge.txt&quot;);</span>
+    <span class="doccomment">/// let s = env.stream(source);</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,

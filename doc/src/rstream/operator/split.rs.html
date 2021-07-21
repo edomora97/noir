@@ -25,6 +25,24 @@
 <span id="22">22</span>
 <span id="23">23</span>
 <span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::block::NextStrategy</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::operator::end::EndBlock</span>;
@@ -35,6 +53,24 @@
 <span class="kw">where</span>
     <span class="ident">OperatorChain</span>: <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
+    <span class="doccomment">/// Split the stream into `splits` streams, each with all the elements of the first one.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This will effectively duplicate every item in the stream into the newly created streams.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **Note**: this operator will split the current block.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+    <span class="doccomment">/// # use rstream::operator::source::IteratorSource;</span>
+    <span class="doccomment">/// # let mut env = StreamEnvironment::new(EnvironmentConfig::local(1));</span>
+    <span class="doccomment">/// let s = env.stream(IteratorSource::new((0..5)));</span>
+    <span class="doccomment">/// let mut splits = s.split(3);</span>
+    <span class="doccomment">/// let a = splits.pop().unwrap();</span>
+    <span class="doccomment">/// let b = splits.pop().unwrap();</span>
+    <span class="doccomment">/// let c = splits.pop().unwrap();</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split</span>(<span class="self">self</span>, <span class="ident">splits</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Out</span>, <span class="kw">impl</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">Out</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// This is needed to maintain the same parallelism of the split block</span>
         <span class="kw">let</span> <span class="ident">scheduler_requirements</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">block</span>.<span class="ident">scheduler_requirements</span>.<span class="ident">clone</span>();

@@ -256,6 +256,10 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
@@ -273,6 +277,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">SlidingEventTimeWindowDescr</span> {
+    <span class="doccomment">/// Create a new sliding window.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Each window has the given size, and will slide with the given steps. The first window is</span>
+    <span class="doccomment">/// aligned with the epoch time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">size</span>: <span class="ident">Duration</span>, <span class="ident">step</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="macro">assert!</span>(<span class="ident">step</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">size</span>);
         <span class="macro">assert_ne!</span>(<span class="ident">size</span>, <span class="ident">Duration::new</span>(<span class="number">0</span>, <span class="number">0</span>));

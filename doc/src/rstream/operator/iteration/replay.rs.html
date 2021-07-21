@@ -500,7 +500,7 @@
         <span class="kw">let</span> <span class="ident">iter_end</span> <span class="op">=</span> <span class="ident">iter_end</span>.<span class="ident">add_operator</span>(<span class="op">|</span><span class="ident">prev</span><span class="op">|</span> <span class="ident">IterationEndBlock::new</span>(<span class="ident">prev</span>, <span class="ident">leader_block_id</span>));
         <span class="kw">let</span> <span class="ident">iteration_end_block_id</span> <span class="op">=</span> <span class="ident">iter_end</span>.<span class="ident">block</span>.<span class="ident">id</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">iter_end</span>.<span class="ident">env</span>.<span class="ident">borrow_mut</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">iter_end</span>.<span class="ident">env</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">scheduler</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">scheduler_mut</span>();
         <span class="ident">scheduler</span>.<span class="ident">add_block</span>(<span class="ident">iter_end</span>.<span class="ident">block</span>);
         <span class="comment">// connect the IterationEndBlock to the IterationLeader</span>

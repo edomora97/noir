@@ -242,7 +242,59 @@
 <span id="239">239</span>
 <span id="240">240</span>
 <span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! The types for constructing the configuration of the environment.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! See the documentation of [`EnvironmentConfig`] for more details.</span>
+
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>};
 <span class="kw">use</span> <span class="ident">std::path::Path</span>;
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
@@ -265,19 +317,61 @@
 <span class="doccomment">/// using ssh. The configuration of the remote environment should be specified via a YAML</span>
 <span class="doccomment">/// configuration file.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// TODO: example</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="doccomment">/// ## Local environment</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+<span class="doccomment">/// let config = EnvironmentConfig::local(1);</span>
+<span class="doccomment">/// let mut env = StreamEnvironment::new(config);</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ## Remote environment</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// # use rstream::{StreamEnvironment, EnvironmentConfig};</span>
+<span class="doccomment">/// # use std::fs::File;</span>
+<span class="doccomment">/// # use std::io::Write;</span>
+<span class="doccomment">/// let config = r&quot;</span>
+<span class="doccomment">/// hosts:</span>
+<span class="doccomment">///   - address: host1</span>
+<span class="doccomment">///     base_port: 9500</span>
+<span class="doccomment">///     num_cores: 16</span>
+<span class="doccomment">///   - address: host2</span>
+<span class="doccomment">///     base_port: 9500</span>
+<span class="doccomment">///     num_cores: 24</span>
+<span class="doccomment">/// &quot;;</span>
+<span class="doccomment">/// let mut file = File::create(&quot;config.yaml&quot;).unwrap();</span>
+<span class="doccomment">/// file.write_all(config.as_bytes());</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let config = EnvironmentConfig::remote(&quot;config.yaml&quot;).expect(&quot;cannot read config file&quot;);</span>
+<span class="doccomment">/// let mut env = StreamEnvironment::new(config);</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ## From command line arguments</span>
+<span class="doccomment">/// This reads from `std::env::args()` and reads the most common options (`--local`, `--remote`,</span>
+<span class="doccomment">/// `--verbose`). All the unparsed options will be returned into `args`. You can use `--help` to see</span>
+<span class="doccomment">/// their docs.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```no_run</span>
+<span class="doccomment">/// # use rstream::{EnvironmentConfig, StreamEnvironment};</span>
+<span class="doccomment">/// let (config, args) = EnvironmentConfig::from_args();</span>
+<span class="doccomment">/// let mut env = StreamEnvironment::new(config);</span>
+<span class="doccomment">/// ```</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EnvironmentConfig</span> {
     <span class="doccomment">/// Which runtime to use for the environment.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">runtime</span>: <span class="ident">ExecutionRuntime</span>,
+    <span class="kw">pub</span> <span class="ident">runtime</span>: <span class="ident">ExecutionRuntime</span>,
     <span class="doccomment">/// In a remote execution this field represents the identifier of the host, i.e. the index</span>
     <span class="doccomment">/// inside the host list in the config.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">host_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HostId</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">host_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HostId</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Skip the check that prevents two remote environments with different environments to be</span>
+    <span class="doccomment">/// constructed.</span>
+    <span class="kw">pub</span> <span class="ident">skip_single_remote_check</span>: <span class="ident">bool</span>,
 }
 
 <span class="doccomment">/// Which kind of environment to use for the execution.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">ExecutionRuntime</span> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExecutionRuntime</span> {
     <span class="doccomment">/// Use only local threads.</span>
     <span class="ident">Local</span>(<span class="ident">LocalRuntimeConfig</span>),
     <span class="doccomment">/// Use both local threads and remote workers.</span>
@@ -285,64 +379,64 @@
 }
 
 <span class="doccomment">/// This environment uses only local threads.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">LocalRuntimeConfig</span> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LocalRuntimeConfig</span> {
     <span class="doccomment">/// The number of CPU cores of this host.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A thread will be spawned for each core, for each block in the job graph.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">num_cores</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">num_cores</span>: <span class="ident">usize</span>,
 }
 
 <span class="doccomment">/// This environment uses local threads and remote hosts.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">RemoteRuntimeConfig</span> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RemoteRuntimeConfig</span> {
     <span class="doccomment">/// The set of remote hosts to use.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">hosts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">RemoteHostConfig</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">hosts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">RemoteHostConfig</span><span class="op">&gt;</span>,
     <span class="doccomment">/// If specified some debug information will be stored inside this directory.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">tracing_dir</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">tracing_dir</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// The configuration of a single remote host.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">RemoteHostConfig</span> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RemoteHostConfig</span> {
     <span class="doccomment">/// The IP address or domain name to use for connecting to this remote host.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This must be reachable from all the hosts in the cluster.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">address</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">address</span>: <span class="ident">String</span>,
     <span class="doccomment">/// The first port to use for inter-host communication.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This port and the following ones will be bound by the host, one for each connection between</span>
     <span class="doccomment">/// blocks of the job graph..</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">base_port</span>: <span class="ident">u16</span>,
+    <span class="kw">pub</span> <span class="ident">base_port</span>: <span class="ident">u16</span>,
     <span class="doccomment">/// The number of cores of the remote host.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is the same as `LocalRuntimeConfig::num_cores`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">num_cores</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">num_cores</span>: <span class="ident">usize</span>,
     <span class="doccomment">/// The configuration to use to connect via SSH to the remote host.</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ssh</span>: <span class="ident">RemoteHostSSHConfig</span>,
+    <span class="kw">pub</span> <span class="ident">ssh</span>: <span class="ident">RemoteHostSSHConfig</span>,
     <span class="doccomment">/// If specified the remote worker will be spawned under `perf`, and its output will be stored</span>
     <span class="doccomment">/// at this location.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">perf_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">perf_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// The information used to connect to a remote host via SSH.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Derivative</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Derivative</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="attribute">#[<span class="ident">derivative</span>(<span class="ident">Default</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::upper_case_acronyms</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">RemoteHostSSHConfig</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RemoteHostSSHConfig</span> {
     <span class="doccomment">/// The SSH port this host listens to.</span>
     <span class="attribute">#[<span class="ident">derivative</span>(<span class="ident">Default</span>(<span class="ident">value</span> <span class="op">=</span> <span class="string">&quot;22&quot;</span>))]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;ssh_default_port&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ssh_port</span>: <span class="ident">u16</span>,
+    <span class="kw">pub</span> <span class="ident">ssh_port</span>: <span class="ident">u16</span>,
     <span class="doccomment">/// The username of the remote host. Defaulted to the local username.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">username</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">username</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The password of the remote host. If not specified ssh-agent will be used for the connection.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">password</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">password</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The path to the private key to use for authenticating to the remote host.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">key_file</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">key_file</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The passphrase for decrypting the private SSH key.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">key_passphrase</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">key_passphrase</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">StructOpt</span>)]</span>
@@ -391,6 +485,7 @@
         <span class="ident">EnvironmentConfig</span> {
             <span class="ident">runtime</span>: <span class="ident">ExecutionRuntime::Local</span>(<span class="ident">LocalRuntimeConfig</span> { <span class="ident">num_cores</span> }),
             <span class="ident">host_id</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
+            <span class="ident">skip_single_remote_check</span>: <span class="bool-val">false</span>,
         }
     }
 
@@ -423,6 +518,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">EnvironmentConfig</span> {
             <span class="ident">runtime</span>: <span class="ident">ExecutionRuntime::Remote</span>(<span class="ident">config</span>),
             <span class="ident">host_id</span>,
+            <span class="ident">skip_single_remote_check</span>: <span class="bool-val">false</span>,
         })
     }
 
