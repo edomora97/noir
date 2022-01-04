@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["rstream"];
+window.ALL_CRATES = ["noir"];
